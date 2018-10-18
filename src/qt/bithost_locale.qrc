@@ -1,0 +1,36 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/translations">
+        <file alias="bg">locale/bithost_bg.qm</file>
+        <file alias="ca">locale/bithost_ca.qm</file>
+        <file alias="cs">locale/bithost_cs.qm</file>
+        <file alias="da">locale/bithost_da.qm</file>
+        <file alias="de">locale/bithost_de.qm</file>
+        <file alias="en">locale/bithost_en.qm</file>
+        <file alias="en_US">locale/bithost_en_US.qm</file>
+        <file alias="eo">locale/bithost_eo.qm</file>
+        <file alias="es">locale/bithost_es.qm</file>
+        <file alias="es_ES">locale/bithost_es_ES.qm</file>
+        <file alias="fi">locale/bithost_fi.qm</file>
+        <file alias="fr_FR">locale/bithost_fr_FR.qm</file>
+        <file alias="hi_IN">locale/bithost_hi_IN.qm</file>
+        <file alias="hr">locale/bithost_hr.qm</file>
+        <file alias="hr_HR">locale/bithost_hr_HR.qm</file>
+        <file alias="it">locale/bithost_it.qm</file>
+        <file alias="ja">locale/bithost_ja.qm</file>
+        <file alias="ko_KR">locale/bithost_ko_KR.qm</file>
+        <file alias="lt_LT">locale/bithost_lt_LT.qm</file>
+        <file alias="nl">locale/bithost_nl.qm</file>
+        <file alias="pl">locale/bithost_pl.qm</file>
+        <file alias="pt">locale/bithost_pt.qm</file>
+        <file alias="pt_BR">locale/bithost_pt_BR.qm</file>
+        <file alias="ro_RO">locale/bithost_ro_RO.qm</file>
+        <file alias="ru">locale/bithost_ru.qm</file>
+        <file alias="sk">locale/bithost_sk.qm</file>
+        <file alias="sv">locale/bithost_sv.qm</file>
+        <file alias="tr">locale/bithost_tr.qm</file>
+        <file alias="uk">locale/bithost_uk.qm</file>
+        <file alias="vi">locale/bithost_vi.qm</file>
+        <file alias="zh_CN">locale/bithost_zh_CN.qm</file>
+        <file alias="zh_TW">locale/bithost_zh_TW.qm</file>
+    </qresource>
+</RCC>

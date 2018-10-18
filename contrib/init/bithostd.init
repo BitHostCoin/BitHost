@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+#  bithostd The Bithost core server.
+#
+#
+# chkconfig: 345 80 20
+# description: bithostd
+# processname: bithostd
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/bithostd, see below
+if [ -f /etc/sysconfig/bithostd ]; then
+        . /etc/sysconfig/bithostd
+fi
+
+RETVAL=0
+
+prog=bithostd
+# you can override the lockfile via BITCOIND_LOCKFILE in /etc/sysconfig/bithostd
+lockfile=${BITCOIND_LOCKFILE-/var/lock/subsys/bithostd}
+
+# bithostd defaults to /usr/bin/bithostd, override with BITCOIND_BIN
+bitcoind=${BITCOIND_BIN-/usr/bin/bithostd}
+
+# bithostd opts default to -disablewallet, override with BITCOIND_OPTS
+bitcoind_opts=${BITCOIND_OPTS}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $bitcoind $bitcoind_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

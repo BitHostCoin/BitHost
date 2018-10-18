@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Bithost
+Comment=Bithost P2P Cryptocurrency
+Comment[fr]=Bithost, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Bithost, eşten eşe kriptografik sanal para birimi
+Exec=bithost-qt %u
+Terminal=false
+Type=Application
+Icon=bithost128
+MimeType=x-scheme-handler/bithost;
+Categories=Office;Finance;
