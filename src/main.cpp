@@ -1822,12 +1822,20 @@ double ConvertBitsToDouble(unsigned int nBits)
 
 int64_t GetBlockValue(int nHeight)
 {
+    int64_t nSubsidy = 0;
+
 	if (Params().NetworkID() == CBaseChainParams::TESTNET) {
 		if (nHeight < 200 && nHeight > 0)
 			return 250000 * COIN;
 	}
 
-	int64_t nSubsidy = 0;
+
+	if (IsTreasuryBlock(nHeight)) {
+        LogPrintf("GetBlockValue(): this is a treasury block\n");
+        nSubsidy = GetTreasuryAward(nHeight);
+
+    } else {
+
 	if (nHeight <= Params().LAST_POW_BLOCK() && nHeight >= 1) {
 		nSubsidy = 18000 * COIN;
 	}
@@ -1999,6 +2007,49 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 
 	return ret;
 }
+
+//Treasury blocks start from 70,000 and then each 10,000th block
+int nStartTreasuryBlock = 70000;
+int nTreasuryBlockStep = 1000;
+
+
+bool IsTreasuryBlock(int nHeight)
+{
+    //This is put in for when dev fee is turned off.
+    if (nHeight < nStartTreasuryBlock)
+        return false;
+    else if (IsSporkActive(SPORK_17_TREASURY_PAYMENT_ENFORCEMENT))
+        return false;
+    else if ((nHeight - nStartTreasuryBlock) % nTreasuryBlockStep == 0)
+        return true;
+    else
+        return false;
+}
+
+int64_t GetTreasuryAward(int nHeight)
+{
+    if (IsTreasuryBlock(nHeight)) {
+        if (nHeight < 75000 && nHeight > 60000) {
+            return 3600 * COIN; //3,600 aday at 5% 25 coins per block
+        } else if (nHeight < 100000 && nHeight > 75000) {
+            return 6120 * COIN; //6,120 aday at 5% 42.5 coins per block
+        } else if (nHeight < 125000 && nHeight > 100000) {
+            return 5400 * COIN; //5,400 aday at 5% 37.5 coins per block
+        } else if (nHeight < 168000 && nHeight > 125000) {
+            return 3600 * COIN; //3,600 aday at 5% 25 coins per block
+        } else if (nHeight < 297600 && nHeight > 168000) {
+            return 1800 * COIN; //1,800 aday at 5% 12.5 coins per block
+        } else if (nHeight < 556800 && nHeight > 297600) {
+            return 720 * COIN; //720 aday at 5% 5 coins per block
+        } else if (nHeight >= 556800) {
+            return 360 * COIN; //720 aday at 5% 2.5 coins per block
+        } else {
+            return 3600;
+        }
+    } else
+        return 0;
+}
+
 
 bool IsInitialBlockDownload()
 {
