@@ -1830,7 +1830,7 @@ int64_t GetBlockValue(int nHeight)
 	}
 
 
-	if (IsTreasuryBlock(nHeight, int64_t blockValue)) {
+	if (IsTreasuryBlock(nHeight)) {
         LogPrintf("GetBlockValue(): this is a treasury block\n");
             nSubsidy = GetTreasuryAward(int nHeight);
 
@@ -1966,8 +1966,6 @@ bool IsTreasuryBlock(int nHeight)
 
 int64_t GetTreasuryAward(int nHeight)
 {
-    int64_t ret = 0;
-
     if (IsTreasuryBlock(nHeight)) {
 
     if (nHeight <= 250000 && nHeight > 200000) {
