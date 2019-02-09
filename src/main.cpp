@@ -1832,7 +1832,7 @@ int64_t GetBlockValue(int nHeight)
 
 	if (IsTreasuryBlock(nHeight, int64_t blockValue)) {
         LogPrintf("GetBlockValue(): this is a treasury block\n");
-            nSubsidy = GetTreasuryAward(int nHeight, int64_t blockValue);
+            nSubsidy = GetTreasuryAward(int nHeight);
 
     }else{
 
@@ -1951,7 +1951,7 @@ int nStartTreasuryBlock = 220000;
 int nTreasuryBlockStep = 1440;
 
 
-bool IsTreasuryBlock(int nHeight, int64_t blockValue)
+bool IsTreasuryBlock(int nHeight)
 {
     //This is put in for when dev fee is turned off.
     if (nHeight < nStartTreasuryBlock)
@@ -1964,19 +1964,36 @@ bool IsTreasuryBlock(int nHeight, int64_t blockValue)
         return false;
 }
 
-int64_t GetTreasuryAward(int nHeight, int64_t blockValue)
+int64_t GetTreasuryAward(int nHeight)
 {
     int64_t ret = 0;
 
     if (IsTreasuryBlock(nHeight)) {
-        if (nHeight > 219999) {
-            ret = (blockValue / 100 * 2) * 1440;
-        }
+
+    if (nHeight <= 250000 && nHeight > 200000) {
+       return 921.6 * COIN; //921.6 aday at 2% of 32 coins per block        
+    } else if (nHeight <= 300000 && nHeight > 250000) {
+        return 737.28 * COIN; //737.28 aday at 2% of 25.6 coins per block
+    } else if (nHeight <= 400000 && nHeight > 300000) {
+        return 589.824 * COIN; //589.824 aday at 2% of 20.48 coins per block
+    } else if (nHeight <= 2200000 && nHeight > 400000) {
+        return 471.744 * COIN; //471.744 aday at 2% of 16.38 coins per block
+    } else if (nHeight <= 3200000 && nHeight > 2200000) {
+        return 118.08 * COIN; //118.08 aday at 2% of 4.10 coins per block
+    } else if (nHeight <= 4200000 && nHeight > 3200000) {
+        return 59.04 * COIN; //59.04 aday at 2% of 2.05 coins per block
+    } else if (nHeight <= 5200000 && nHeight > 4200000) {
+        return 29.367 * COIN; //29.367 aday at 2% of 1.02 coins per block
+    } else if (nHeight <= 6200000 && nHeight > 5200000) {
+        return 14.688 * COIN; //14.688 aday at 2% of .51 coins per block
+    } else if (nHeight > 6200000) {
+        return 7.48 * COIN; //7.48 aday at 2% of .26 coins per block
     } else {
-        ret = (blockValue / 100 * 2) * 1440;
+        return 7.48 * COIN;
     }
-        
-    return ret;
+
+	}
+else return 0;
 }
 
 
