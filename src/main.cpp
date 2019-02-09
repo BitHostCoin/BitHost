@@ -1832,7 +1832,7 @@ int64_t GetBlockValue(int nHeight)
 
 	if (IsTreasuryBlock(nHeight)) {
         LogPrintf("GetBlockValue(): this is a treasury block\n");
-        nSubsidy = GetTreasuryAward(nHeight);
+            nSubsidy = GetTreasuryAward(int nHeight, int64_t blockValue);
 
     }else{
 
