@@ -1834,99 +1834,98 @@ int64_t GetBlockValue(int nHeight)
         LogPrintf("GetBlockValue(): this is a treasury block\n");
         nSubsidy = GetTreasuryAward(nHeight);
 
+    } else {
+
+	if (nHeight <= Params().LAST_POW_BLOCK() && nHeight >= 1) {
+		nSubsidy = 18000 * COIN;
+	}
+	else if (nHeight <= 5000 && nHeight > Params().LAST_POW_BLOCK()) {
+		nSubsidy = 3 * COIN;
+	}
+	else if (nHeight <= 10000 && nHeight > 5000) {
+		nSubsidy = 5 * COIN;
+	}
+	else if (nHeight <= 18000 && nHeight > 10000) {
+		nSubsidy = 8 * COIN;
+	}
+	else if (nHeight <= 36000 && nHeight > 18000) {
+		nSubsidy = 12 * COIN;
+	}
+	else if (nHeight <= 50000 && nHeight > 36000) {
+		nSubsidy = 15 * COIN;
+	}
+	else if (nHeight <= 64000 && nHeight > 50000) {
+		nSubsidy = 18 * COIN;
+	}
+	else if (nHeight <= 80000 && nHeight > 64000) {
+		nSubsidy = 21 * COIN;
+	}
+	else if (nHeight <= 100000 && nHeight > 80000) {
+		nSubsidy = 24 * COIN;
+	}
+	else if (nHeight <= 124000 && nHeight > 100000) {
+		nSubsidy = 30 * COIN;
+	}
+	else if (nHeight <= 142000 && nHeight > 124000) {
+		nSubsidy = 33 * COIN;
+	}
+	else if (nHeight <= 160000 && nHeight > 142000) {
+		nSubsidy = 36 * COIN;
+	}
+	else if (nHeight <= 184000 && nHeight > 160000) {
+		nSubsidy = 39 * COIN;
+	}
+	else if (nHeight <= 200000 && nHeight > 184000) {
+		nSubsidy = 42 * COIN;
+	}
+	else if (nHeight <= 225000 && nHeight > 200000) {
+		nSubsidy = 39 * COIN;
+	}
+	else if (nHeight <= 250000 && nHeight > 225000) { // Start of new reward structure
+		nSubsidy = 32 * COIN;
+	} else if (nHeight <= 300000 && nHeight > 250000) {
+		nSubsidy = 25.60 * COIN;
+        } else if (nHeight <= 350000 && nHeight > 300000) {
+		nSubsidy = 20.48 * COIN;
+	} else if (nHeight <= 400000 && nHeight > 350000) {
+		nSubsidy = 16.38 * COIN;
+	} else if (nHeight <= 500000 && nHeight > 400000) { // Left off here, reward structure given not clear
+		nSubsidy = 24 * COIN;
+	}
+	else if (nHeight <= 600000 && nHeight > 500000) {
+		nSubsidy = 23 * COIN;
+	}
+	else if (nHeight <= 700000 && nHeight > 600000) {
+		nSubsidy = 22 * COIN;
+	}
+	else if (nHeight <= 1000000 && nHeight > 700000) {
+		nSubsidy = 21 * COIN;
+	}
+	else if (nHeight <= 2000000 && nHeight > 1000000) {
+		nSubsidy = 20 * COIN;
+	}
+	else if (nHeight <= 2500000 && nHeight > 2000000) {
+		nSubsidy = 19 * COIN;
+	}
+	else if (nHeight <= 2600000 && nHeight > 2500000) {
+		nSubsidy = 18 * COIN;
+	}
+	else if (nHeight <= 2700000 && nHeight > 2600000) {
+		nSubsidy = 15 * COIN;
+	}
+	else if (nHeight <= 2810327 && nHeight > 2700000) {
+		nSubsidy = 12 * COIN;
 	}
 	else {
-
-		if (nHeight <= Params().LAST_POW_BLOCK() && nHeight >= 1) {
-			nSubsidy = 18000 * COIN;
-		}
-		else if (nHeight <= 5000 && nHeight > Params().LAST_POW_BLOCK()) {
-			nSubsidy = 3 * COIN;
-		}
-		else if (nHeight <= 10000 && nHeight > 5000) {
-			nSubsidy = 5 * COIN;
-		}
-		else if (nHeight <= 18000 && nHeight > 10000) {
-			nSubsidy = 8 * COIN;
-		}
-		else if (nHeight <= 36000 && nHeight > 18000) {
-			nSubsidy = 12 * COIN;
-		}
-		else if (nHeight <= 50000 && nHeight > 36000) {
-			nSubsidy = 15 * COIN;
-		}
-		else if (nHeight <= 64000 && nHeight > 50000) {
-			nSubsidy = 18 * COIN;
-		}
-		else if (nHeight <= 80000 && nHeight > 64000) {
-			nSubsidy = 21 * COIN;
-		}
-		else if (nHeight <= 100000 && nHeight > 80000) {
-			nSubsidy = 24 * COIN;
-		}
-		else if (nHeight <= 124000 && nHeight > 100000) {
-			nSubsidy = 30 * COIN;
-		}
-		else if (nHeight <= 142000 && nHeight > 124000) {
-			nSubsidy = 33 * COIN;
-		}
-		else if (nHeight <= 160000 && nHeight > 142000) {
-			nSubsidy = 36 * COIN;
-		}
-		else if (nHeight <= 184000 && nHeight > 160000) {
-			nSubsidy = 39 * COIN;
-		}
-		else if (nHeight <= 200000 && nHeight > 184000) {
-			nSubsidy = 42 * COIN;
-		}
-		else if (nHeight <= 225000 && nHeight > 200000) {
-			nSubsidy = 39 * COIN;
-		}
-		else if (nHeight <= 242000 && nHeight > 225000) {
-			nSubsidy = 36 * COIN;
-		}
-		else if (nHeight <= 264000 && nHeight > 242000) {
-			nSubsidy = 33 * COIN;
-		}
-		else if (nHeight <= 284000 && nHeight > 264000) {
-			nSubsidy = 30 * COIN;
-		}
-		else if (nHeight <= 300000 && nHeight > 284000) {
-			nSubsidy = 27 * COIN;
-		}
-		else if (nHeight <= 500000 && nHeight > 300000) {
-			nSubsidy = 24 * COIN;
-		}
-		else if (nHeight <= 600000 && nHeight > 500000) {
-			nSubsidy = 23 * COIN;
-		}
-		else if (nHeight <= 700000 && nHeight > 600000) {
-			nSubsidy = 22 * COIN;
-		}
-		else if (nHeight <= 1000000 && nHeight > 700000) {
-			nSubsidy = 21 * COIN;
-		}
-		else if (nHeight <= 2000000 && nHeight > 1000000) {
-			nSubsidy = 20 * COIN;
-		}
-		else if (nHeight <= 2500000 && nHeight > 2000000) {
-			nSubsidy = 19 * COIN;
-		}
-		else if (nHeight <= 2600000 && nHeight > 2500000) {
-			nSubsidy = 18 * COIN;
-		}
-		else if (nHeight <= 2700000 && nHeight > 2600000) {
-			nSubsidy = 15 * COIN;
-		}
-		else if (nHeight <= 2810327 && nHeight > 2700000) {
-			nSubsidy = 12 * COIN;
-		}
-		else {
-			nSubsidy = 1 * COIN;
-		}
-		return nSubsidy;
-
+		nSubsidy = 1 * COIN;
 	}
+        int64_t nMoneySupply = chainActive.Tip()->nMoneySupply;
+        if (nMoneySupply + nSubsidy >= Params().MaxMoneyOut())
+            nSubsidy = Params().MaxMoneyOut() - nMoneySupply;
+        if (nMoneySupply >= Params().MaxMoneyOut())
+            nSubsidy = 0; //Amount each block pays after max supply is reached
+    }
+    return nSubsidy;
 }
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZBIHStake)
@@ -1979,30 +1978,8 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 	}
 	else if (nHeight <= 225000 && nHeight > 200000) {
 		ret = blockValue * 43 / 50;						//86%;
-	}
-	else if (nHeight <= 242000 && nHeight > 225000) {
-		ret = blockValue * 173 / 200;					//86.5%;
-	}
-	else if (nHeight <= 264000 && nHeight > 242000) {
-		ret = blockValue * 87 / 100;					//87%;
-	}
-	else if (nHeight <= 284000 && nHeight > 264000) {
-		ret = blockValue * 7 / 8;						//87.5%;
-	}
-	else if (nHeight <= 300000 && nHeight > 284000) {
-		ret = blockValue * 22 / 25;						//88%;
-	}
-	else if (nHeight <= 500000 && nHeight > 300000) {
-		ret = blockValue * 177 / 200;					//88.5%;
-	}
-	else if (nHeight <= 600000 && nHeight > 500000) {
-		ret = blockValue * 89 / 100;					//89%;
-	}
-	else if (nHeight <= 700000 && nHeight > 600000) {
-		ret = blockValue * 179 / 200;					//89.5%;
-	}
-	else {
-		ret = blockValue * 9 / 10;						//90%;
+	}else {
+		ret = blockValue / 10 * 9;						//90%;
 	}
 	
 	if (isZBIHStake)
@@ -2011,9 +1988,9 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 	return ret;
 }
 
-//Treasury blocks start from 70,000 and then each 10,000th block
-int nStartTreasuryBlock = 70000;
-int nTreasuryBlockStep = 1000;
+//Treasury blocks start from 220,000 and then each 10,000th block
+int nStartTreasuryBlock = 220000;
+int nTreasuryBlockStep = 1440;
 
 
 bool IsTreasuryBlock(int nHeight)
@@ -2029,28 +2006,19 @@ bool IsTreasuryBlock(int nHeight)
         return false;
 }
 
-int64_t GetTreasuryAward(int nHeight)
+int64_t GetTreasuryAward(int nHeight, int64_t blockValue)
 {
+    int64_t ret = 0;
+
     if (IsTreasuryBlock(nHeight)) {
-        if (nHeight < 75000 && nHeight > 60000) {
-            return 3600 * COIN; //3,600 aday at 5% 25 coins per block
-        } else if (nHeight < 100000 && nHeight > 75000) {
-            return 6120 * COIN; //6,120 aday at 5% 42.5 coins per block
-        } else if (nHeight < 125000 && nHeight > 100000) {
-            return 5400 * COIN; //5,400 aday at 5% 37.5 coins per block
-        } else if (nHeight < 168000 && nHeight > 125000) {
-            return 3600 * COIN; //3,600 aday at 5% 25 coins per block
-        } else if (nHeight < 297600 && nHeight > 168000) {
-            return 1800 * COIN; //1,800 aday at 5% 12.5 coins per block
-        } else if (nHeight < 556800 && nHeight > 297600) {
-            return 720 * COIN; //720 aday at 5% 5 coins per block
-        } else if (nHeight >= 556800) {
-            return 360 * COIN; //720 aday at 5% 2.5 coins per block
-        } else {
-            return 3600;
+        if (nHeight > 219999) {
+            ret = blockValue / .2 * 10;
         }
-    } else
-        return 0;
+    } else {
+        ret = blockValue / .2 * 10;
+    }
+        
+    return ret;
 }
 
 
