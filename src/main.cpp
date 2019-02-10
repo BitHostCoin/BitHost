@@ -1831,7 +1831,7 @@ double ConvertBitsToDouble(unsigned int nBits)
 
 CAmount GetCurrentCollateral()
 {
-    if (IsSporkActive(SPORK_18_CHANGE_COLLATERAL))
+    if (IsSporkActive(SPORK_18_CHANGE_COLLATERAL_ENFORCEMENT))
         return Params().MasternodeCollateralNew();
     else
         return Params().MasternodeCollateralAmt();
