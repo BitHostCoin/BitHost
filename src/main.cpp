@@ -1829,7 +1829,7 @@ double ConvertBitsToDouble(unsigned int nBits)
 	return dDiff;
 }
 
-CAmount Params().MasternodeCollateralAmt()
+CAmount GetCurrentCollateral()
 {
     if (IsSporkActive(SPORK_18_CHANGE_COLLATERAL))
         return Params().MasternodeCollateralNew();
