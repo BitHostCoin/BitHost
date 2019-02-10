@@ -89,6 +89,15 @@ int64_t nReserveBalance = 0;
 */
 CFeeRate minRelayTxFee = CFeeRate(10000);
 
+// maps any spent outputs in the past maxreorgdepth blocks to the height it was spent
+// this means for incoming blocks, we can check that their stake output was not spent before
+// the incoming block tried to use it as a staking input. We can also prevent block spam
+// attacks because then we can check that either the staking input is available in the current
+// active chain, or the staking input was spent in the past 100 blocks after the height
+// of the incoming block.
+
+map<COutPoint, int> mapStakeSpent;
+
 CTxMemPool mempool(::minRelayTxFee);
 
 struct COrphanTx {
@@ -1820,7 +1829,7 @@ double ConvertBitsToDouble(unsigned int nBits)
 	return dDiff;
 }
 
-CAmount GetCurrentCollateral()
+CAmount Params().MasternodeCollateralAmt()
 {
     if (IsSporkActive(SPORK_18_CHANGE_COLLATERAL))
         return Params().MasternodeCollateralNew();
@@ -2464,6 +2473,9 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 				if (coins->vout.size() < out.n + 1)
 					coins->vout.resize(out.n + 1);
 				coins->vout[out.n] = undo.txout;
+
+				                // erase the spent input
+                                mapStakeSpent.erase(out);
 			}
 		}
 	}
@@ -3068,6 +3080,26 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 	if (fTxIndex)
 		if (!pblocktree->WriteTxIndex(vPos))
 			return state.Abort("Failed to write transaction index");
+        // add new entries
+        for (const CTransaction tx : block.vtx) {
+            if (tx.IsCoinBase())
+                continue;
+            for (const CTxIn in : tx.vin) {
+                if (fDebug) LogPrintf("mapStakeSpent: Insert %s | %u\n", in.prevout.ToString(), pindex->nHeight);
+                mapStakeSpent.insert(std::make_pair(in.prevout, pindex->nHeight));
+            }
+        }
+
+
+        // delete old entries
+        for (auto it = mapStakeSpent.begin(); it != mapStakeSpent.end();) {
+            if (it->second < pindex->nHeight - Params().MaxReorganizationDepth()) {
+                if (fDebug) LogPrintf("mapStakeSpent: Erase %s | %u\n", it->first.ToString(), it->second);
+                it = mapStakeSpent.erase(it);
+            } else {
+                it++;
+            }
+        }
 
 	// add this block to the view's block chain
 	view.SetBestBlock(pindex->GetBlockHash());
@@ -4354,6 +4386,55 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 
 	int nHeight = pindex->nHeight;
 
+	if (block.IsProofOfStake()) {
+            LOCK(cs_main);
+
+            CCoinsViewCache coins(pcoinsTip);
+
+            if (!coins.HaveInputs(block.vtx[1])) {
+                // the inputs are spent at the chain tip so we should look at the recently spent outputs
+
+                for (CTxIn in : block.vtx[1].vin) {
+                    auto it = mapStakeSpent.find(in.prevout);
+                    if (it == mapStakeSpent.end()) {
+                        return false;
+                    }
+                    if (it->second <= pindexPrev->nHeight) {
+                        return false;
+                    }
+                }
+            }
+
+            // if this is on a fork
+            if (!chainActive.Contains(pindexPrev) && pindexPrev != NULL) {
+                // start at the block we're adding on to
+                CBlockIndex* last = pindexPrev;
+
+                // while that block is not on the main chain
+                while (!chainActive.Contains(last) && pindexPrev != NULL) {
+                    CBlock bl;
+                    ReadBlockFromDisk(bl, last);
+                    // loop through every spent input from said block
+                    for (CTransaction t : bl.vtx) {
+                        for (CTxIn in : t.vin) {
+                            // loop through every spent input in the staking transaction of the new block
+                            for (CTxIn stakeIn : block.vtx[1].vin) {
+                                // if they spend the same input
+                                if (stakeIn.prevout == in.prevout) {
+                                    // reject the block
+                                    if (fDebug) LogPrintf("AcceptBlock() Spent input detected! %s == %s BLOCK REJECTED!", stakeIn.prevout.ToString(), in.prevout.ToString());
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+
+                    // go to the parent block
+                    last = pindexPrev->pprev;
+                }
+            }
+    }
+
 	// Write block to history file
 	try {
 		unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
@@ -5511,9 +5592,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 		// Bithost: We use certain sporks during IBD, so check to see if they are
 		// available. If not, ask the first peer connected for them.
-		bool fMissingSporks = !pSporkDB->SporkExists(SPORK_14_NEW_PROTOCOL_ENFORCEMENT) &&
-			!pSporkDB->SporkExists(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2) &&
-			!pSporkDB->SporkExists(SPORK_16_ZEROCOIN_MAINTENANCE_MODE);
+                bool fMissingSporks = !pSporkDB->SporkExists(SPORK_14_NEW_PROTOCOL_ENFORCEMENT) &&
+                                      !pSporkDB->SporkExists(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2) &&
+                                      !pSporkDB->SporkExists(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) &&
+                                      !pSporkDB->SporkExists(SPORK_18_CHANGE_COLLATERAL_ENFORCEMENT);
 
 		if (fMissingSporks || !fRequestedSporksIDB) {
 			LogPrintf("asking peer for sporks\n");
@@ -6361,12 +6443,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 int ActiveProtocol()
 {
 	// SPORK_14 is used for 70913 (v3.1.0+)
-	if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
-		return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+	//if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
+		//return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
 	// SPORK_15 was used for 70912 (v3.0.5+), commented out now.
-	//if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
-	//        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+	if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
+	        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
 	return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
 }
