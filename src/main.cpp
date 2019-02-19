@@ -64,6 +64,14 @@ CCriticalSection cs_main;
 BlockMap mapBlockIndex;
 map<uint256, uint256> mapProofOfStake;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
+//NUROM: POS ATTACK FIX SECURITY
+// maps any spent outputs in the past maxreorgdepth blocks to the height it was spent
+// this means for incoming blocks, we can check that their stake output was not spent before
+// the incoming block tried to use it as a staking input. We can also prevent block spam
+// attacks because then we can check that either the staking input is available in the current
+// active chain, or the staking input was spent in the past 100 blocks after the height
+// of the incoming block.
+map<COutPoint, int> mapStakeSpent;
 map<unsigned int, unsigned int> mapHashedBlocks;
 CChain chainActive;
 CBlockIndex* pindexBestHeader = NULL;
@@ -1870,9 +1878,10 @@ int64_t GetBlockValue(int nHeight)
 	else if (nHeight <= 200000 && nHeight > 184000) {
 		nSubsidy = 42 * COIN;
 	}
-	else if (nHeight <= 225000 && nHeight > 200000) {
+	else if (nHeight <= Params().HeightCollateralFork() && nHeight > 200000) {
 		nSubsidy = 39 * COIN;
-	}
+	} 
+        /*
 	else if (nHeight <= 242000 && nHeight > 225000) {
 		nSubsidy = 36 * COIN;
 	}
@@ -1912,8 +1921,27 @@ int64_t GetBlockValue(int nHeight)
 	else if (nHeight <= 2810327 && nHeight > 2700000) {
 		nSubsidy = 12 * COIN;
 	}
-	else {
-		nSubsidy = 1 * COIN;
+        */
+        else if (nHeight <= 250000 && nHeight > Params().HeightCollateralFork()) { // Start of new reward structure
+                nSubsidy = 32 * COIN;
+        } else if (nHeight <= 300000 && nHeight > 250000) {
+                nSubsidy = 25.60 * COIN;
+        } else if (nHeight <= 400000 && nHeight > 300000) {
+                nSubsidy = 20.48 * COIN;
+        } else if (nHeight <= 2200000 && nHeight > 400000) {
+                nSubsidy = 16.38 * COIN;
+        } else if (nHeight <= 3200000 && nHeight > 2200000) {
+                nSubsidy = 4.10 * COIN;
+        } else if (nHeight <= 4200000 && nHeight > 3200000) {
+                nSubsidy = 2.05 * COIN;
+        } else if (nHeight <= 5200000 && nHeight > 4200000) {
+                nSubsidy = 1.02 * COIN;
+        } else if (nHeight <= 6200000 && nHeight > 5200000) {
+                nSubsidy = .51 * COIN;
+        } else if (nHeight > 6200000) {
+                nSubsidy = .26 * COIN;        
+	} else {
+		nSubsidy = .26 * COIN;
 	}
 	return nSubsidy;
 }
@@ -1931,7 +1959,7 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 		return 0;
 	}
 	else if (nHeight <= 10000 && nHeight > Params().LAST_POW_BLOCK()) {
-		ret = blockValue * 4 / 5;						//80%;
+		ret = blockValue * 4 / 5;					//80%;
 	}
 	else if (nHeight <= 18000 && nHeight > 10000) {
 		ret = blockValue * 161 / 200;					//80.5%;
@@ -1943,10 +1971,10 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 		ret = blockValue * 163 / 200;					//81.5%;
 	}
 	else if (nHeight <= 64000 && nHeight > 50000) {
-		ret = blockValue * 41 / 50;						//82%;
+		ret = blockValue * 41 / 50;					//82%;
 	}
 	else if (nHeight <= 80000 && nHeight > 64000) {
-		ret = blockValue * 33 / 40;						//82.5%;
+		ret = blockValue * 33 / 40;					//82.5%;
 	}
 	else if (nHeight <= 100000 && nHeight > 80000) {
 		ret = blockValue * 83 / 100;					//83%;
@@ -1955,47 +1983,50 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 		ret = blockValue * 167 / 200;					//83.5%;
 	}
 	else if (nHeight <= 142000 && nHeight > 124000) {
-		ret = blockValue * 21 / 25;						//84%;
+		ret = blockValue * 21 / 25;					//84%;
 	}
 	else if (nHeight <= 160000 && nHeight > 142000) {
 		ret = blockValue * 169 / 200;					//84.5%;
 	}
 	else if (nHeight <= 184000 && nHeight > 160000) {
-		ret = blockValue * 17 / 20;						//85%;
+		ret = blockValue * 17 / 20;					//85%;
 	}
 	else if (nHeight <= 200000 && nHeight > 184000) {
 		ret = blockValue * 171 / 200;					//85.5%;
 	}
-	else if (nHeight <= 225000 && nHeight > 200000) {
-		ret = blockValue * 43 / 50;						//86%;
-	}
+	else if (nHeight <= Params().HeightCollateralFork() && nHeight > 200000) {
+		ret = blockValue * 43 / 50;				        //86%;
+	} else if (nHeight > Params().HeightCollateralFork()) {
+                ret = blockValue * 9 / 10;
+        }
+        /*
 	else if (nHeight <= 242000 && nHeight > 225000) {
-		ret = blockValue * 173 / 200;					//86.5%;
+		ret = blockValue * 173 / 200;					
 	}
 	else if (nHeight <= 264000 && nHeight > 242000) {
-		ret = blockValue * 87 / 100;					//87%;
+		ret = blockValue * 87 / 100;					
 	}
 	else if (nHeight <= 284000 && nHeight > 264000) {
-		ret = blockValue * 7 / 8;						//87.5%;
+		ret = blockValue * 7 / 8;						
 	}
 	else if (nHeight <= 300000 && nHeight > 284000) {
-		ret = blockValue * 22 / 25;						//88%;
+		ret = blockValue * 22 / 25;						
 	}
 	else if (nHeight <= 500000 && nHeight > 300000) {
-		ret = blockValue * 177 / 200;					//88.5%;
+		ret = blockValue * 177 / 200;					
 	}
 	else if (nHeight <= 600000 && nHeight > 500000) {
-		ret = blockValue * 89 / 100;					//89%;
+		ret = blockValue * 89 / 100;					
 	}
 	else if (nHeight <= 700000 && nHeight > 600000) {
-		ret = blockValue * 179 / 200;					//89.5%;
-	}
-	else {
-		ret = blockValue * 9 / 10;						//90%;
+		ret = blockValue * 179 / 200;					
+	}*/
+	else { // Start of new reward structure
+		ret = blockValue * 9 / 10;						
 	}
 	
 	if (isZBIHStake)
-		ret = 1 * COIN;
+	    ret = 1 * COIN;
 
 	return ret;
 }
@@ -2461,6 +2492,9 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 				if (coins->vout.size() < out.n + 1)
 					coins->vout.resize(out.n + 1);
 				coins->vout[out.n] = undo.txout;
+                                //NUROM: POS ATTACK FIX SECURITY
+                                // erase the spent input
+                                mapStakeSpent.erase(out);                                
 			}
 		}
 	}
@@ -3065,6 +3099,28 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 	if (fTxIndex)
 		if (!pblocktree->WriteTxIndex(vPos))
 			return state.Abort("Failed to write transaction index");
+        
+//NUROM: POS ATTACK FIX SECURITY 
+ // add new entries
+    for (const CTransaction tx: block.vtx) {
+        if (tx.IsCoinBase())
+            continue;
+        for (const CTxIn in: tx.vin) {
+            LogPrint("map", "mapStakeSpent: insert %s | %u\n", in.prevout.ToString(), pindex->nHeight);
+            mapStakeSpent.insert(std::make_pair(in.prevout, pindex->nHeight));
+        }
+    }
+
+    // delete old entries
+    for (auto it = mapStakeSpent.begin(); it != mapStakeSpent.end();) {
+        if (it->second < pindex->nHeight - Params().MaxReorganizationDepth()) {
+            LogPrint("map", "mapStakeSpent: remove %s | %u\n", it->first.ToString(), it->second);
+            it = mapStakeSpent.erase(it);
+        }
+        else {
+            it++;
+        }
+    }        
 
 	// add this block to the view's block chain
 	view.SetBestBlock(pindex->GetBlockHash());
@@ -3921,6 +3977,9 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
 	return true;
 }
 
+//NUROM: POS ATTACK FIX SECURITY
+#define STAKE_MIN_CONF 20
+
 bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig)
 {
 	// These are checks that are independent of context.
@@ -3983,7 +4042,42 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 		for (unsigned int i = 2; i < block.vtx.size(); i++)
 			if (block.vtx[i].IsCoinStake())
 				return state.DoS(100, error("CheckBlock() : more than one coinstake"));
-	}
+	
+                //NUROM: POS ATTACK FIX SECURITY
+                if(true) {
+                //additional check against false PoS attack
+
+		// Check for coin age.
+		// First try finding the previous transaction in database.
+		CTransaction txPrev;
+		uint256 hashBlockPrev;
+                bool is_nurom_bad_block = false;
+		if (!GetTransaction(block.vtx[1].vin[0].prevout.hash, txPrev, hashBlockPrev, true)) {
+                    LogPrintf("CheckBlock() : error NUROM - stake failed to find vin transaction - block=%s\n", block.GetHash().ToString().c_str());
+			//return state.DoS(0, error("CheckBlock() : NUROM - stake failed to find vin transaction"));
+                    is_nurom_bad_block = true;
+                    
+                }
+                if(!is_nurom_bad_block) {
+		// Find block in map.
+		CBlockIndex* pindex = NULL;
+		BlockMap::iterator it = mapBlockIndex.find(hashBlockPrev);
+		if (it != mapBlockIndex.end())
+			pindex = it->second;
+		else
+			return state.DoS(100, error("CheckBlock() : stake failed to find block index"));
+		// Check block time vs stake age requirement.
+		if (pindex->GetBlockHeader().nTime + nStakeMinAge > GetAdjustedTime())
+			return state.DoS(100, error("CheckBlock() : stake under min. stake age"));
+
+		// Check that the prev. stake block has required confirmations by height.
+		LogPrintf("CheckBlock() : height=%d stake_tx_height=%d required_confirmations=%d got=%d\n", chainActive.Tip()->nHeight, pindex->nHeight, STAKE_MIN_CONF, chainActive.Tip()->nHeight - pindex->nHeight);
+		if (chainActive.Tip()->nHeight - pindex->nHeight < STAKE_MIN_CONF)
+			return state.DoS(100, error("CheckBlock() : stake under min. required confirmations"));
+                }
+                }
+                
+	}        
 
 	// ----------- swiftTX transaction scanning -----------
 	if (IsSporkActive(SPORK_3_SWIFTTX_BLOCK_FILTERING)) {
@@ -4350,6 +4444,55 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 	}
 
 	int nHeight = pindex->nHeight;
+
+//NUROM: POS ATTACK FIX SECURITY        
+if (block.IsProofOfStake()) {
+        LOCK(cs_main);
+
+        CCoinsViewCache coins(pcoinsTip);
+
+        if (!coins.HaveInputs(block.vtx[1])) {
+            // the inputs are spent at the chain tip so we should look at the recently spent outputs
+
+            for (CTxIn in : block.vtx[1].vin) {
+                auto it = mapStakeSpent.find(in.prevout);
+                if (it == mapStakeSpent.end()) {
+                    return false;
+                }
+                if (it->second <= pindexPrev->nHeight) {
+                    return false;
+                }
+            }
+        }
+
+        // if this is on a fork
+        if (!chainActive.Contains(pindexPrev) && pindexPrev != NULL) {
+            // start at the block we're adding on to
+            CBlockIndex *last = pindexPrev;
+
+            // while that block is not on the main chain
+            while (last != NULL && !chainActive.Contains(last)) {
+                CBlock bl;
+                ReadBlockFromDisk(bl, last);
+                // loop through every spent input from said block
+                for (CTransaction t : bl.vtx) {
+                    for (CTxIn in: t.vin) {
+                        // loop through every spent input in the staking transaction of the new block
+                        for (CTxIn stakeIn : block.vtx[1].vin) {
+                            // if they spend the same input
+                            if (stakeIn.prevout == in.prevout) {
+                                // reject the block
+                                return false;
+                            }
+                        }
+                    }
+                }
+
+                // go to the parent block
+                last = last->pprev;
+            }
+        }
+    }        
 
 	// Write block to history file
 	try {

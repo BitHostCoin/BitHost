@@ -456,7 +456,8 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
 
     // Filter
     BOOST_FOREACH (const COutput& out, vCoins) {
-        if (out.tx->vout[out.i].nValue == 3000 * COIN) { //exactly
+        //NUROM: Update collateral from 3000 to 15000
+        if (out.tx->vout[out.i].nValue == GetMasternodeCollateral() * COIN) { //exactly
             filteredCoins.push_back(out);
         }
     }

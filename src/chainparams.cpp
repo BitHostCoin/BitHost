@@ -61,12 +61,12 @@ static Checkpoints::MapCheckpoints mapCheckpoints =
     (154, uint256("0x447ca5b3126771c5e17d48502626733c6bfa06e7ed4c17f8fa082b4a77e9c888"))
     (173, uint256("0xa77f31fdbc9f56bc095413e085f1fd9b93b01c023c0ff1746d6482bb1c03dfc4"))
     (204, uint256("0x98c2e143c0e7611e70af0f7bd87ae04fb13c0e8411610ab42403a59097a53674"))
-	(258, uint256("0x30289dfdf4b5e438d143d38bf5ee8ac14be3c9dac56603c1dc42977bb6bccb04"))
-	(372, uint256("0x6df9acfbd7b9ed17132861f302376237741690a9c6cc155d1cb8ebda3cb2d746"))
-	(561, uint256("0xc4d0326caefcf88802b9dd98c929cb77fe9c7956391d4366e25943a16116604f"))
-	(942, uint256("0xd64a300e7bddcd5a65fd18a06cd6aed235253c0f73e8bf367210ef6c9937c6a5"))
-	(1289, uint256("0x6e6f1b2a80db0e0f802660d3d8abdf6cc867063f8828a7c9c54539045c7bcf71"))
-	(1460, uint256("0x9b6b547bf591f6f876ff586c34e41e2390348473df178df6d0f279388d1006d5"))
+    (258, uint256("0x30289dfdf4b5e438d143d38bf5ee8ac14be3c9dac56603c1dc42977bb6bccb04"))
+    (372, uint256("0x6df9acfbd7b9ed17132861f302376237741690a9c6cc155d1cb8ebda3cb2d746"))
+    (561, uint256("0xc4d0326caefcf88802b9dd98c929cb77fe9c7956391d4366e25943a16116604f"))
+    (942, uint256("0xd64a300e7bddcd5a65fd18a06cd6aed235253c0f73e8bf367210ef6c9937c6a5"))
+    (1289, uint256("0x6e6f1b2a80db0e0f802660d3d8abdf6cc867063f8828a7c9c54539045c7bcf71"))
+    (1460, uint256("0x9b6b547bf591f6f876ff586c34e41e2390348473df178df6d0f279388d1006d5"))
 
     ;
 static const Checkpoints::CCheckpointData data = {
@@ -140,7 +140,12 @@ public:
         nTargetSpacing = 1 * 60;  // Bithost: 1 minute
         nMaturity = 60;
         nMasternodeCountDrift = 20;
-        nMaxMoneyOut = 60000000 * COIN;
+        nMaxMoneyOut = 51000000 * COIN;
+
+        //NUROM BlockHeight for Fork (Collateral + Reward changes)     
+        nHeightCollateralFork = 225000;
+        nMasternodeCollateralOld = 3000;
+        nMasternodeCollateralNew = 15000;        
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 100;
@@ -186,14 +191,21 @@ public:
         assert(hashGenesisBlock == uint256("0x000000713764d64e3578f9e38227a95546fe55864e2af23566e1c5ca5933d23b3"));
         assert(genesis.hashMerkleRoot == uint256("0xb633021072205df502b90881f7ff8422e7609d6e74a52ee98dcd4a9abd9bbf6c"));
 
-        vSeeds.push_back(CDNSSeedData("0", "159.89.232.159"));     // Primary DNS Seeder from Fuzzbawls
-        vSeeds.push_back(CDNSSeedData("1", "178.128.150.32"));    // Secondary DNS Seeder from Fuzzbawls
-        vSeeds.push_back(CDNSSeedData("2", "178.128.180.243"));         // Single node address
+        vSeeds.clear();
+        //vultr
+        /*vSeeds.push_back(CDNSSeedData("0", "199.247.1.214")); //ubuntu-11
+        vSeeds.push_back(CDNSSeedData("1", "45.32.157.2")); //ubuntu-27
+        vSeeds.push_back(CDNSSeedData("2", "95.179.160.89")); //ubuntu-18
+        vSeeds.push_back(CDNSSeedData("3", "108.61.178.171")); //ubuntu-19        
+        */
+        /*vSeeds.push_back(CDNSSeedData("0", "159.89.232.159"));
+        vSeeds.push_back(CDNSSeedData("1", "178.128.150.32"));    
+        vSeeds.push_back(CDNSSeedData("2", "178.128.180.243"));         
         vSeeds.push_back(CDNSSeedData("3", "142.93.233.99"));
         vSeeds.push_back(CDNSSeedData("4", "104.248.148.153"));
         vSeeds.push_back(CDNSSeedData("5", "104.248.166.76"));
         vSeeds.push_back(CDNSSeedData("6", "46.101.249.104"));
-        vSeeds.push_back(CDNSSeedData("7", "142.93.144.163"));
+        vSeeds.push_back(CDNSSeedData("7", "142.93.144.163"));*/
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 25);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 13);

@@ -16,6 +16,14 @@ map<uint256, int> mapSeenMasternodeScanningErrors;
 // cache block hashes as we calculate them
 std::map<int64_t, uint256> mapCacheBlockHashes;
 
+CAmount GetMasternodeCollateral() { 
+    if(chainActive.Tip()->nHeight < Params().HeightCollateralFork()) { 
+        return Params().MasternodeCollateralOld();
+    }
+    return Params().MasternodeCollateralNew();
+} 
+
+
 //Get the last hash that matches the modulus given. Processed in reverse order
 bool GetBlockHash(uint256& hash, int nBlockHeight)
 {
@@ -216,7 +224,8 @@ void CMasternode::Check(bool forceCheck)
     if (!unitTest) {
         CValidationState state;
         CMutableTransaction tx = CMutableTransaction();
-        CTxOut vout = CTxOut(2999.99 * COIN, obfuScationPool.collateralPubKey);
+        //NUROM: update collateral from 3000 to 15000
+        CTxOut vout = CTxOut((GetMasternodeCollateral() - 0.01) * COIN, obfuScationPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
 
@@ -586,7 +595,8 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
 
     CValidationState state;
     CMutableTransaction tx = CMutableTransaction();
-    CTxOut vout = CTxOut(2999.99 * COIN, obfuScationPool.collateralPubKey);
+    //NUROM: update collateral from 3000 to 15000
+    CTxOut vout = CTxOut((GetMasternodeCollateral() - 0.01) * COIN, obfuScationPool.collateralPubKey);
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);
 

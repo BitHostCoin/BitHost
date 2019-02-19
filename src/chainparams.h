@@ -77,6 +77,11 @@ public:
     int64_t Interval() const { return nTargetTimespan / nTargetSpacing; }
     int COINBASE_MATURITY() const { return nMaturity; }
     CAmount MaxMoneyOut() const { return nMaxMoneyOut; }
+    
+    CAmount MasternodeCollateralOld() const { return nMasternodeCollateralOld; }
+    CAmount MasternodeCollateralNew() const { return nMasternodeCollateralNew; }
+    int HeightCollateralFork() const { return nHeightCollateralFork; }
+    
     /** The masternode count that we will allow the see-saw reward payments to be off by */
     int MasternodeCountDrift() const { return nMasternodeCountDrift; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
@@ -147,6 +152,11 @@ protected:
     int nMaturity;
     int nModifierUpdateBlock;
     CAmount nMaxMoneyOut;
+    //NUROM Fork (Collateral + Reward changes)
+    int nHeightCollateralFork;
+    CAmount nMasternodeCollateralOld;
+    CAmount nMasternodeCollateralNew;
+    
     int nMinerThreads;
     std::vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
