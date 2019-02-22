@@ -119,7 +119,9 @@ public:
     CMainParams()
     {
         networkID = CBaseChainParams::MAIN;
-        vTreasuryRewardAddress = "";
+	//This is the dev fee address going to Felix Clin
+	//Dev Fee coded by TFinch.
+        vTreasuryRewardAddress = "BQybgi9YRizJMZwpA85M1w4QR23vM5vZvb";
         strNetworkID = "main";
         /**
          * The message start string is designed to be unlikely to occur in normal data.
