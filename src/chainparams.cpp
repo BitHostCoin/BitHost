@@ -10,6 +10,8 @@
 #include "random.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "net.h"
+#include "base58.h"
 
 #include <assert.h>
 
@@ -117,6 +119,9 @@ public:
     CMainParams()
     {
         networkID = CBaseChainParams::MAIN;
+	//This is the dev fee address going to Felix Clin
+	//Dev Fee coded by TFinch.
+        vTreasuryRewardAddress = "BQybgi9YRizJMZwpA85M1w4QR23vM5vZvb";
         strNetworkID = "main";
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -141,6 +146,8 @@ public:
         nMaturity = 60;
         nMasternodeCountDrift = 20;
         nMaxMoneyOut = 60000000 * COIN;
+        nMasternodeCollateralAmt = 3000;
+        nMasternodeCollateralNew = 15000;
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 100;
@@ -243,6 +250,20 @@ public:
         return data;
     }
 };
+
+std::string CChainParams::GetTreasuryRewardAddressAtHeight(int nHeight) const
+{
+    return vTreasuryRewardAddress;
+}
+
+CScript CChainParams::GetTreasuryRewardScriptAtHeight(int nHeight) const
+{
+    CBitcoinAddress address(GetTreasuryRewardAddressAtHeight(nHeight).c_str());
+    assert(address.IsValid());
+
+    CScript script = GetScriptForDestination(address.Get());
+    return script;
+}
 static CMainParams mainParams;
 
 /**

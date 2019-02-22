@@ -89,6 +89,15 @@ int64_t nReserveBalance = 0;
 */
 CFeeRate minRelayTxFee = CFeeRate(10000);
 
+// maps any spent outputs in the past maxreorgdepth blocks to the height it was spent
+// this means for incoming blocks, we can check that their stake output was not spent before
+// the incoming block tried to use it as a staking input. We can also prevent block spam
+// attacks because then we can check that either the staking input is available in the current
+// active chain, or the staking input was spent in the past 100 blocks after the height
+// of the incoming block.
+
+map<COutPoint, int> mapStakeSpent;
+
 CTxMemPool mempool(::minRelayTxFee);
 
 struct COrphanTx {
@@ -1820,102 +1829,88 @@ double ConvertBitsToDouble(unsigned int nBits)
 	return dDiff;
 }
 
+CAmount GetCurrentCollateral()
+{
+    if (IsSporkActive(SPORK_18_CHANGE_COLLATERAL_ENFORCEMENT))
+        return Params().MasternodeCollateralNew();
+    else
+        return Params().MasternodeCollateralAmt();
+}
+
 int64_t GetBlockValue(int nHeight)
 {
+    int64_t nSubsidy = 0;
+
 	if (Params().NetworkID() == CBaseChainParams::TESTNET) {
 		if (nHeight < 200 && nHeight > 0)
 			return 250000 * COIN;
 	}
 
-	int64_t nSubsidy = 0;
+
+	if (IsTreasuryBlock(nHeight)) {
+        LogPrintf("GetBlockValue(): this is a treasury block\n");
+            nSubsidy = GetTreasuryAward(nHeight);
+
+    }else{
+
 	if (nHeight <= Params().LAST_POW_BLOCK() && nHeight >= 1) {
 		nSubsidy = 18000 * COIN;
-	}
-	else if (nHeight <= 5000 && nHeight > Params().LAST_POW_BLOCK()) {
+	}else if (nHeight <= 5000 && nHeight > Params().LAST_POW_BLOCK()) {
 		nSubsidy = 3 * COIN;
-	}
-	else if (nHeight <= 10000 && nHeight > 5000) {
+	}else if (nHeight <= 10000 && nHeight > 5000) {
 		nSubsidy = 5 * COIN;
-	}
-	else if (nHeight <= 18000 && nHeight > 10000) {
+	}else if (nHeight <= 18000 && nHeight > 10000) {
 		nSubsidy = 8 * COIN;
-	}
-	else if (nHeight <= 36000 && nHeight > 18000) {
+	}else if (nHeight <= 36000 && nHeight > 18000) {
 		nSubsidy = 12 * COIN;
-	}
-	else if (nHeight <= 50000 && nHeight > 36000) {
+	}else if (nHeight <= 50000 && nHeight > 36000) {
 		nSubsidy = 15 * COIN;
-	}
-	else if (nHeight <= 64000 && nHeight > 50000) {
+	}else if (nHeight <= 64000 && nHeight > 50000) {
 		nSubsidy = 18 * COIN;
-	}
-	else if (nHeight <= 80000 && nHeight > 64000) {
+	}else if (nHeight <= 80000 && nHeight > 64000) {
 		nSubsidy = 21 * COIN;
-	}
-	else if (nHeight <= 100000 && nHeight > 80000) {
+	}else if (nHeight <= 100000 && nHeight > 80000) {
 		nSubsidy = 24 * COIN;
-	}
-	else if (nHeight <= 124000 && nHeight > 100000) {
+	}else if (nHeight <= 124000 && nHeight > 100000) {
 		nSubsidy = 30 * COIN;
-	}
-	else if (nHeight <= 142000 && nHeight > 124000) {
+	}else if (nHeight <= 142000 && nHeight > 124000) {
 		nSubsidy = 33 * COIN;
-	}
-	else if (nHeight <= 160000 && nHeight > 142000) {
+	}else if (nHeight <= 160000 && nHeight > 142000) {
 		nSubsidy = 36 * COIN;
-	}
-	else if (nHeight <= 184000 && nHeight > 160000) {
+	}else if (nHeight <= 184000 && nHeight > 160000) {
 		nSubsidy = 39 * COIN;
-	}
-	else if (nHeight <= 200000 && nHeight > 184000) {
+	}else if (nHeight <= 200000 && nHeight > 184000) {
 		nSubsidy = 42 * COIN;
-	}
-	else if (nHeight <= 225000 && nHeight > 200000) {
+	}else if (nHeight <= 225000 && nHeight > 200000) {
 		nSubsidy = 39 * COIN;
+	}else if (nHeight <= 250000 && nHeight > 225000) { // Start of new reward structure
+		nSubsidy = 32 * COIN;
+	} else if (nHeight <= 300000 && nHeight > 250000) {
+		nSubsidy = 25.60 * COIN;
+    } else if (nHeight <= 400000 && nHeight > 300000) {
+		nSubsidy = 20.48 * COIN;
+    } else if (nHeight <= 2200000 && nHeight > 400000) {
+		nSubsidy = 16.38 * COIN;
+    } else if (nHeight <= 3200000 && nHeight > 2200000) {
+		nSubsidy = 4.10 * COIN;
+    } else if (nHeight <= 4200000 && nHeight > 3200000) {
+		nSubsidy = 2.05 * COIN;
+    } else if (nHeight <= 5200000 && nHeight > 4200000) {
+		nSubsidy = 1.02 * COIN;
+    } else if (nHeight <= 6200000 && nHeight > 5200000) {
+		nSubsidy = .51 * COIN;
+    } else if (nHeight > 6200000) {
+		nSubsidy = .26 * COIN;
+	}else {
+		nSubsidy = .26 * COIN;
 	}
-	else if (nHeight <= 242000 && nHeight > 225000) {
-		nSubsidy = 36 * COIN;
-	}
-	else if (nHeight <= 264000 && nHeight > 242000) {
-		nSubsidy = 33 * COIN;
-	}
-	else if (nHeight <= 284000 && nHeight > 264000) {
-		nSubsidy = 30 * COIN;
-	}
-	else if (nHeight <= 300000 && nHeight > 284000) {
-		nSubsidy = 27 * COIN;
-	}
-	else if (nHeight <= 500000 && nHeight > 300000) {
-		nSubsidy = 24 * COIN;
-	}
-	else if (nHeight <= 600000 && nHeight > 500000) {
-		nSubsidy = 23 * COIN;
-	}
-	else if (nHeight <= 700000 && nHeight > 600000) {
-		nSubsidy = 22 * COIN;
-	}
-	else if (nHeight <= 1000000 && nHeight > 700000) {
-		nSubsidy = 21 * COIN;
-	}
-	else if (nHeight <= 2000000 && nHeight > 1000000) {
-		nSubsidy = 20 * COIN;
-	}
-	else if (nHeight <= 2500000 && nHeight > 2000000) {
-		nSubsidy = 19 * COIN;
-	}
-	else if (nHeight <= 2600000 && nHeight > 2500000) {
-		nSubsidy = 18 * COIN;
-	}
-	else if (nHeight <= 2700000 && nHeight > 2600000) {
-		nSubsidy = 15 * COIN;
-	}
-	else if (nHeight <= 2810327 && nHeight > 2700000) {
-		nSubsidy = 12 * COIN;
-	}
-	else {
-		nSubsidy = 1 * COIN;
-	}
-	return nSubsidy;
+        int64_t nMoneySupply = chainActive.Tip()->nMoneySupply;
+        if (nMoneySupply + nSubsidy >= Params().MaxMoneyOut())
+            nSubsidy = Params().MaxMoneyOut() - nMoneySupply;
+        if (nMoneySupply >= Params().MaxMoneyOut())
+            nSubsidy = 0; //Amount each block pays after max supply is reached
+    }
+    return nSubsidy;
 }
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZBIHStake)
@@ -1929,69 +1924,36 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 
 	if (nHeight <= Params().LAST_POW_BLOCK()) {
 		return 0;
-	}
-	else if (nHeight <= 10000 && nHeight > Params().LAST_POW_BLOCK()) {
+	}else if (nHeight <= 10000 && nHeight > Params().LAST_POW_BLOCK()) {
 		ret = blockValue * 4 / 5;						//80%;
-	}
-	else if (nHeight <= 18000 && nHeight > 10000) {
+	}else if (nHeight <= 18000 && nHeight > 10000) {
 		ret = blockValue * 161 / 200;					//80.5%;
-	}
-	else if (nHeight <= 36000 && nHeight > 18000) {
+	}else if (nHeight <= 36000 && nHeight > 18000) {
 		ret = blockValue * 81 / 100;					//81%;
-	}
-	else if (nHeight <= 50000 && nHeight > 36000) {
+	}else if (nHeight <= 50000 && nHeight > 36000) {
 		ret = blockValue * 163 / 200;					//81.5%;
-	}
-	else if (nHeight <= 64000 && nHeight > 50000) {
+	}else if (nHeight <= 64000 && nHeight > 50000) {
 		ret = blockValue * 41 / 50;						//82%;
-	}
-	else if (nHeight <= 80000 && nHeight > 64000) {
+	}else if (nHeight <= 80000 && nHeight > 64000) {
 		ret = blockValue * 33 / 40;						//82.5%;
-	}
-	else if (nHeight <= 100000 && nHeight > 80000) {
+	}else if (nHeight <= 100000 && nHeight > 80000) {
 		ret = blockValue * 83 / 100;					//83%;
-	}
-	else if (nHeight <= 124000 && nHeight > 100000) {
+	}else if (nHeight <= 124000 && nHeight > 100000) {
 		ret = blockValue * 167 / 200;					//83.5%;
-	}
-	else if (nHeight <= 142000 && nHeight > 124000) {
+	}else if (nHeight <= 142000 && nHeight > 124000) {
 		ret = blockValue * 21 / 25;						//84%;
-	}
-	else if (nHeight <= 160000 && nHeight > 142000) {
+	}else if (nHeight <= 160000 && nHeight > 142000) {
 		ret = blockValue * 169 / 200;					//84.5%;
-	}
-	else if (nHeight <= 184000 && nHeight > 160000) {
+	}else if (nHeight <= 184000 && nHeight > 160000) {
 		ret = blockValue * 17 / 20;						//85%;
-	}
-	else if (nHeight <= 200000 && nHeight > 184000) {
+	}else if (nHeight <= 200000 && nHeight > 184000) {
 		ret = blockValue * 171 / 200;					//85.5%;
-	}
-	else if (nHeight <= 225000 && nHeight > 200000) {
+	}else if (nHeight <= 225000 && nHeight > 200000) {
 		ret = blockValue * 43 / 50;						//86%;
-	}
-	else if (nHeight <= 242000 && nHeight > 225000) {
-		ret = blockValue * 173 / 200;					//86.5%;
-	}
-	else if (nHeight <= 264000 && nHeight > 242000) {
-		ret = blockValue * 87 / 100;					//87%;
-	}
-	else if (nHeight <= 284000 && nHeight > 264000) {
-		ret = blockValue * 7 / 8;						//87.5%;
-	}
-	else if (nHeight <= 300000 && nHeight > 284000) {
-		ret = blockValue * 22 / 25;						//88%;
-	}
-	else if (nHeight <= 500000 && nHeight > 300000) {
-		ret = blockValue * 177 / 200;					//88.5%;
-	}
-	else if (nHeight <= 600000 && nHeight > 500000) {
-		ret = blockValue * 89 / 100;					//89%;
-	}
-	else if (nHeight <= 700000 && nHeight > 600000) {
-		ret = blockValue * 179 / 200;					//89.5%;
-	}
-	else {
-		ret = blockValue * 9 / 10;						//90%;
+    } else if (nHeight > 225000) {
+            ret = blockValue / 100 * 90;				//90%
+	}else {
+		ret = blockValue / 100 * 90;						//90%;
 	}
 	
 	if (isZBIHStake)
@@ -1999,6 +1961,56 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 
 	return ret;
 }
+
+//Treasury blocks start from 220,000 and then each 10,000th block
+//TFinch
+int nStartTreasuryBlock = 220000;
+int nTreasuryBlockStep = 1440;
+
+
+bool IsTreasuryBlock(int nHeight)
+{
+    //This is put in for when dev fee is turned off.
+    if (nHeight < nStartTreasuryBlock)
+        return false;
+    else if (IsSporkActive(SPORK_17_TREASURY_PAYMENT_ENFORCEMENT))
+        return false;
+    else if ((nHeight - nStartTreasuryBlock) % nTreasuryBlockStep == 0)
+        return true;
+    else
+        return false;
+}
+
+int64_t GetTreasuryAward(int nHeight)
+{
+    if (IsTreasuryBlock(nHeight)) {
+
+    if (nHeight <= 250000 && nHeight > 200000) {
+       return 921.6 * COIN; //921.6 aday at 2% of 32 coins per block        
+    } else if (nHeight <= 300000 && nHeight > 250000) {
+        return 737.28 * COIN; //737.28 aday at 2% of 25.6 coins per block
+    } else if (nHeight <= 400000 && nHeight > 300000) {
+        return 589.824 * COIN; //589.824 aday at 2% of 20.48 coins per block
+    } else if (nHeight <= 2200000 && nHeight > 400000) {
+        return 471.744 * COIN; //471.744 aday at 2% of 16.38 coins per block
+    } else if (nHeight <= 3200000 && nHeight > 2200000) {
+        return 118.08 * COIN; //118.08 aday at 2% of 4.10 coins per block
+    } else if (nHeight <= 4200000 && nHeight > 3200000) {
+        return 59.04 * COIN; //59.04 aday at 2% of 2.05 coins per block
+    } else if (nHeight <= 5200000 && nHeight > 4200000) {
+        return 29.367 * COIN; //29.367 aday at 2% of 1.02 coins per block
+    } else if (nHeight <= 6200000 && nHeight > 5200000) {
+        return 14.688 * COIN; //14.688 aday at 2% of .51 coins per block
+    } else if (nHeight > 6200000) {
+        return 7.48 * COIN; //7.48 aday at 2% of .26 coins per block
+    } else {
+        return 7.48 * COIN;
+    }
+
+	}
+else return 0;
+}
+
 
 bool IsInitialBlockDownload()
 {
@@ -2461,6 +2473,9 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 				if (coins->vout.size() < out.n + 1)
 					coins->vout.resize(out.n + 1);
 				coins->vout[out.n] = undo.txout;
+
+				                // erase the spent input
+                                mapStakeSpent.erase(out);
 			}
 		}
 	}
@@ -3065,6 +3080,26 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 	if (fTxIndex)
 		if (!pblocktree->WriteTxIndex(vPos))
 			return state.Abort("Failed to write transaction index");
+        // add new entries
+        for (const CTransaction tx : block.vtx) {
+            if (tx.IsCoinBase())
+                continue;
+            for (const CTxIn in : tx.vin) {
+                if (fDebug) LogPrintf("mapStakeSpent: Insert %s | %u\n", in.prevout.ToString(), pindex->nHeight);
+                mapStakeSpent.insert(std::make_pair(in.prevout, pindex->nHeight));
+            }
+        }
+
+
+        // delete old entries
+        for (auto it = mapStakeSpent.begin(); it != mapStakeSpent.end();) {
+            if (it->second < pindex->nHeight - Params().MaxReorganizationDepth()) {
+                if (fDebug) LogPrintf("mapStakeSpent: Erase %s | %u\n", it->first.ToString(), it->second);
+                it = mapStakeSpent.erase(it);
+            } else {
+                it++;
+            }
+        }
 
 	// add this block to the view's block chain
 	view.SetBestBlock(pindex->GetBlockHash());
@@ -4351,6 +4386,55 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 
 	int nHeight = pindex->nHeight;
 
+	if (block.IsProofOfStake()) {
+            LOCK(cs_main);
+
+            CCoinsViewCache coins(pcoinsTip);
+
+            if (!coins.HaveInputs(block.vtx[1])) {
+                // the inputs are spent at the chain tip so we should look at the recently spent outputs
+
+                for (CTxIn in : block.vtx[1].vin) {
+                    auto it = mapStakeSpent.find(in.prevout);
+                    if (it == mapStakeSpent.end()) {
+                        return false;
+                    }
+                    if (it->second <= pindexPrev->nHeight) {
+                        return false;
+                    }
+                }
+            }
+
+            // if this is on a fork
+            if (!chainActive.Contains(pindexPrev) && pindexPrev != NULL) {
+                // start at the block we're adding on to
+                CBlockIndex* last = pindexPrev;
+
+                // while that block is not on the main chain
+                while (!chainActive.Contains(last) && pindexPrev != NULL) {
+                    CBlock bl;
+                    ReadBlockFromDisk(bl, last);
+                    // loop through every spent input from said block
+                    for (CTransaction t : bl.vtx) {
+                        for (CTxIn in : t.vin) {
+                            // loop through every spent input in the staking transaction of the new block
+                            for (CTxIn stakeIn : block.vtx[1].vin) {
+                                // if they spend the same input
+                                if (stakeIn.prevout == in.prevout) {
+                                    // reject the block
+                                    if (fDebug) LogPrintf("AcceptBlock() Spent input detected! %s == %s BLOCK REJECTED!", stakeIn.prevout.ToString(), in.prevout.ToString());
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+
+                    // go to the parent block
+                    last = pindexPrev->pprev;
+                }
+            }
+    }
+
 	// Write block to history file
 	try {
 		unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
@@ -5508,9 +5592,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 		// Bithost: We use certain sporks during IBD, so check to see if they are
 		// available. If not, ask the first peer connected for them.
-		bool fMissingSporks = !pSporkDB->SporkExists(SPORK_14_NEW_PROTOCOL_ENFORCEMENT) &&
-			!pSporkDB->SporkExists(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2) &&
-			!pSporkDB->SporkExists(SPORK_16_ZEROCOIN_MAINTENANCE_MODE);
+                bool fMissingSporks = !pSporkDB->SporkExists(SPORK_14_NEW_PROTOCOL_ENFORCEMENT) &&
+                                      !pSporkDB->SporkExists(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2) &&
+                                      !pSporkDB->SporkExists(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) &&
+                                      !pSporkDB->SporkExists(SPORK_18_CHANGE_COLLATERAL_ENFORCEMENT);
 
 		if (fMissingSporks || !fRequestedSporksIDB) {
 			LogPrintf("asking peer for sporks\n");
@@ -6358,12 +6443,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 int ActiveProtocol()
 {
 	// SPORK_14 is used for 70913 (v3.1.0+)
-	if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
-		return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+	//if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
+		//return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
 	// SPORK_15 was used for 70912 (v3.0.5+), commented out now.
-	//if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
-	//        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+	if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
+	        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
 	return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
 }

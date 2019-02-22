@@ -124,7 +124,14 @@ public:
     int Zerocoin_StartTime() const { return nZerocoinStartTime; }
     int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
     int Zerocoin_Block_V2_Start() const { return nBlockZerocoinV2; }
+    CAmount MasternodeCollateralAmt() const { return nMasternodeCollateralAmt; }
+    CAmount MasternodeCollateralNew() const { return nMasternodeCollateralNew; }
     CAmount InvalidAmountFiltered() const { return nInvalidAmountFiltered; };
+
+	std::string vTreasuryRewardAddress;
+
+    std::string GetTreasuryRewardAddressAtHeight(int height) const;
+    CScript GetTreasuryRewardScriptAtHeight(int height) const;
 
 protected:
     CChainParams() {}
@@ -134,6 +141,8 @@ protected:
     //! Raw pub key bytes for the broadcast alert signing key.
     std::vector<unsigned char> vAlertPubKey;
     int nDefaultPort;
+    CAmount nMasternodeCollateralAmt;
+    CAmount nMasternodeCollateralNew;
     uint256 bnProofOfWorkLimit;
     int nMaxReorganizationDepth;
     //int nSubsidyHalvingInterval;
