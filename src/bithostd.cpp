@@ -147,6 +147,15 @@ bool AppInit(int argc, char* argv[])
 #endif
         SoftSetBoolArg("-server", true);
 
+    boost::filesystem::path pathProbePeers = GetDataDir() / ".probe_peers";
+    
+    if(!boost::filesystem::exists(pathProbePeers)) {
+      if(boost::filesystem::exists(GetDataDir() / "peers.dat"))
+        boost::filesystem::remove(GetDataDir() / "peers.dat");
+      FILE* file = fopen(pathProbePeers.string().c_str(), "w");
+      fclose(file);
+    }        
+        
         fRet = AppInit2(threadGroup, scheduler);
     } catch (std::exception& e) {
         PrintExceptionContinue(&e, "AppInit()");

@@ -9,6 +9,7 @@
 #include "obfuscation.h"
 #include "sync.h"
 #include "util.h"
+#include "spork.h"
 #include <boost/lexical_cast.hpp>
 
 // keep track of the scanning errors I've seen
@@ -17,10 +18,10 @@ map<uint256, int> mapSeenMasternodeScanningErrors;
 std::map<int64_t, uint256> mapCacheBlockHashes;
 
 CAmount GetMasternodeCollateral() { 
-    if(chainActive.Tip()->nHeight < Params().HeightCollateralFork()) { 
-        return Params().MasternodeCollateralOld();
+    if(IsSporkActive(SPORK_18_CHANGE_COLLATERAL_ENFORCEMENT) && chainActive.Tip()->nHeight >= Params().HeightCollateralFork()) {
+        return Params().MasternodeCollateralNew();
     }
-    return Params().MasternodeCollateralNew();
+    return Params().MasternodeCollateralOld();
 } 
 
 

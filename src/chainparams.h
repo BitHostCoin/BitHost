@@ -81,7 +81,7 @@ public:
     CAmount MasternodeCollateralOld() const { return nMasternodeCollateralOld; }
     CAmount MasternodeCollateralNew() const { return nMasternodeCollateralNew; }
     int HeightCollateralFork() const { return nHeightCollateralFork; }
-    
+    int HeightForkOffset() const { return nHeightForkOffset; }
     /** The masternode count that we will allow the see-saw reward payments to be off by */
     int MasternodeCountDrift() const { return nMasternodeCountDrift; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
@@ -129,8 +129,11 @@ public:
     int Zerocoin_StartTime() const { return nZerocoinStartTime; }
     int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
     int Zerocoin_Block_V2_Start() const { return nBlockZerocoinV2; }
-    CAmount InvalidAmountFiltered() const { return nInvalidAmountFiltered; };
-
+    CAmount InvalidAmountFiltered() const { return nInvalidAmountFiltered; };  
+    std::string vTreasuryRewardAddress;
+    std::string GetTreasuryRewardAddressAtHeight(int height) const;
+    CScript GetTreasuryRewardScriptAtHeight(int height) const;
+    
 protected:
     CChainParams() {}
 
@@ -154,8 +157,9 @@ protected:
     CAmount nMaxMoneyOut;
     //NUROM Fork (Collateral + Reward changes)
     int nHeightCollateralFork;
+    int nHeightForkOffset;
     CAmount nMasternodeCollateralOld;
-    CAmount nMasternodeCollateralNew;
+    CAmount nMasternodeCollateralNew;  
     
     int nMinerThreads;
     std::vector<CDNSSeedData> vSeeds;

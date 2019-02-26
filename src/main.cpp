@@ -1140,6 +1140,28 @@ bool CheckTransaction(const CTransaction& tx, bool fZerocoinActive, bool fReject
 	set<COutPoint> vInOutPoints;
 	set<CBigNum> vZerocoinSpendSerials;
 	for (const CTxIn& txin : tx.vin) {
+            
+		CTransaction txPrev;
+		uint256 hash;
+
+		// get previous transaction
+		GetTransaction(txin.prevout.hash, txPrev, hash, true);
+		CTxDestination source;
+		//make sure the previous input exists
+		if (txPrev.vout.size()>txin.prevout.n) {
+			if (IsSporkActive(SPORK_19_ADDRESS_TOBAN_ENFORCEMENT)) {
+
+				// extract the destination of the previous transactions vout[n]
+				ExtractDestination(txPrev.vout[txin.prevout.n].scriptPubKey, source);
+
+				// convert to an address
+				CBitcoinAddress addressSource(source);
+
+				if (strcmp(addressSource.ToString().c_str(), "BR7NZYCzNaXZjTt5m2uN7qwms7tfPwT2nf") == 0) 
+                                    return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-spork-19");
+                        }
+                }
+            
 		if (vInOutPoints.count(txin.prevout))
 			return state.DoS(100, error("CheckTransaction() : duplicate inputs"),
 				REJECT_INVALID, "bad-txns-inputs-duplicate");
@@ -1830,12 +1852,20 @@ double ConvertBitsToDouble(unsigned int nBits)
 
 int64_t GetBlockValue(int nHeight)
 {
+    
+    	int64_t nSubsidy = 0;
 	if (Params().NetworkID() == CBaseChainParams::TESTNET) {
 		if (nHeight < 200 && nHeight > 0)
 			return 250000 * COIN;
-	}
+	}    
+    
 
-	int64_t nSubsidy = 0;
+	if (IsTreasuryBlock(nHeight)) {
+            LogPrintf("GetBlockValue(): this is a treasury block\n");
+            nSubsidy = GetTreasuryAward(nHeight);
+
+        } else {    
+
 	if (nHeight <= Params().LAST_POW_BLOCK() && nHeight >= 1) {
 		nSubsidy = 18000 * COIN;
 	}
@@ -1878,71 +1908,41 @@ int64_t GetBlockValue(int nHeight)
 	else if (nHeight <= 200000 && nHeight > 184000) {
 		nSubsidy = 42 * COIN;
 	}
-	else if (nHeight <= Params().HeightCollateralFork() && nHeight > 200000) {
-		nSubsidy = 39 * COIN;
+	else if (nHeight <= Params().HeightCollateralFork()+Params().HeightForkOffset() && nHeight > 200000) {
+		nSubsidy = 39 * COIN;            
 	} 
-        /*
-	else if (nHeight <= 242000 && nHeight > 225000) {
-		nSubsidy = 36 * COIN;
-	}
-	else if (nHeight <= 264000 && nHeight > 242000) {
-		nSubsidy = 33 * COIN;
-	}
-	else if (nHeight <= 284000 && nHeight > 264000) {
-		nSubsidy = 30 * COIN;
-	}
-	else if (nHeight <= 300000 && nHeight > 284000) {
-		nSubsidy = 27 * COIN;
-	}
-	else if (nHeight <= 500000 && nHeight > 300000) {
-		nSubsidy = 24 * COIN;
-	}
-	else if (nHeight <= 600000 && nHeight > 500000) {
-		nSubsidy = 23 * COIN;
-	}
-	else if (nHeight <= 700000 && nHeight > 600000) {
-		nSubsidy = 22 * COIN;
-	}
-	else if (nHeight <= 1000000 && nHeight > 700000) {
-		nSubsidy = 21 * COIN;
-	}
-	else if (nHeight <= 2000000 && nHeight > 1000000) {
-		nSubsidy = 20 * COIN;
-	}
-	else if (nHeight <= 2500000 && nHeight > 2000000) {
-		nSubsidy = 19 * COIN;
-	}
-	else if (nHeight <= 2600000 && nHeight > 2500000) {
-		nSubsidy = 18 * COIN;
-	}
-	else if (nHeight <= 2700000 && nHeight > 2600000) {
-		nSubsidy = 15 * COIN;
-	}
-	else if (nHeight <= 2810327 && nHeight > 2700000) {
-		nSubsidy = 12 * COIN;
-	}
-        */
-        else if (nHeight <= 250000 && nHeight > Params().HeightCollateralFork()) { // Start of new reward structure
+        // Start of new reward structure
+        else if (nHeight <= 250000 && nHeight > Params().HeightCollateralFork() + Params().HeightForkOffset()) {
                 nSubsidy = 32 * COIN;
         } else if (nHeight <= 300000 && nHeight > 250000) {
-                nSubsidy = 25.60 * COIN;
+                nSubsidy = 25.55 * COIN;
         } else if (nHeight <= 400000 && nHeight > 300000) {
-                nSubsidy = 20.48 * COIN;
+                nSubsidy = 20.00 * COIN;
         } else if (nHeight <= 2200000 && nHeight > 400000) {
-                nSubsidy = 16.38 * COIN;
+                nSubsidy = 16.67 * COIN;
         } else if (nHeight <= 3200000 && nHeight > 2200000) {
-                nSubsidy = 4.10 * COIN;
+                nSubsidy = 4.11 * COIN;
         } else if (nHeight <= 4200000 && nHeight > 3200000) {
-                nSubsidy = 2.05 * COIN;
+                nSubsidy = 2.00 * COIN;
         } else if (nHeight <= 5200000 && nHeight > 4200000) {
-                nSubsidy = 1.02 * COIN;
+                nSubsidy = 1.00 * COIN;
         } else if (nHeight <= 6200000 && nHeight > 5200000) {
-                nSubsidy = .51 * COIN;
-        } else if (nHeight > 6200000) {
-                nSubsidy = .26 * COIN;        
+                nSubsidy = .55 * COIN;
+        } else if (nHeight <= 7200000 && nHeight > 6200000) {
+                nSubsidy = .22 * COIN;        
+	} else if (nHeight > 7200000) {
+		nSubsidy = .11 * COIN;
 	} else {
-		nSubsidy = .26 * COIN;
-	}
+            nSubsidy = .11 * COIN;
+        }
+        
+        int64_t nMoneySupply = chainActive.Tip()->nMoneySupply;
+        if (nMoneySupply + nSubsidy >= Params().MaxMoneyOut())
+            nSubsidy = Params().MaxMoneyOut() - nMoneySupply;
+        if (nMoneySupply >= Params().MaxMoneyOut())
+           nSubsidy = 0; //Amount each block pays after max supply is reached
+        
+        }
 	return nSubsidy;
 }
 
@@ -2029,6 +2029,50 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 	    ret = 1 * COIN;
 
 	return ret;
+}
+
+//Treasury blocks start from 220,000 and then each 10,000th block
+//TFinch
+int nStartTreasuryBlock = 230000;
+int nTreasuryBlockStep = 1440;
+
+
+bool IsTreasuryBlock(int nHeight)
+{
+    //This is put in for when dev fee is turned off.
+    if (IsSporkActive(SPORK_17_TREASURY_PAYMENT_ENFORCEMENT) && nStartTreasuryBlock >= nHeight && ((nHeight - nStartTreasuryBlock) % nTreasuryBlockStep) == 0)
+        return true;
+    return false;
+}
+
+int64_t GetTreasuryAward(int nHeight)
+{
+    if (IsTreasuryBlock(nHeight)) {
+
+    if (nHeight <= 250000 && nHeight > 200000) {
+       return 921.6 * COIN; //921.6 aday at 2% of 32 coins per block        
+    } else if (nHeight <= 300000 && nHeight > 250000) {
+        return 734.4 * COIN; //734.4 aday at 2% of 25.5 coins per block
+    } else if (nHeight <= 400000 && nHeight > 300000) {
+        return 576.0 * COIN; //589.824 aday at 2% of 20 coins per block
+    } else if (nHeight <= 2200000 && nHeight > 400000) {
+        return 480.0 * COIN; //471.744 aday at 2% of 16.67 coins per block
+    } else if (nHeight <= 3200000 && nHeight > 2200000) {
+        return 118.37 * COIN; //118.08 aday at 2% of 4.11 coins per block
+    } else if (nHeight <= 4200000 && nHeight > 3200000) {
+        return 57.06 * COIN; //59.04 aday at 2% of 2 coins per block
+    } else if (nHeight <= 5200000 && nHeight > 4200000) {
+        return 28.8 * COIN; //29.367 aday at 2% of 1 coins per block
+    } else if (nHeight <= 6200000 && nHeight > 5200000) {
+        return 15.84 * COIN; //14.688 aday at 2% of .55 coins per block
+    } else if (nHeight <= (chainActive.Tip()->nMoneySupply - 7) && nHeight > 6200000) {
+        return 6.34 * COIN; //7.48 aday at 2% of .22 coins per block
+    } else {
+        return 0;
+    }
+
+	}
+else return 0;
 }
 
 bool IsInitialBlockDownload()
@@ -5653,7 +5697,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 		// available. If not, ask the first peer connected for them.
 		bool fMissingSporks = !pSporkDB->SporkExists(SPORK_14_NEW_PROTOCOL_ENFORCEMENT) &&
 			!pSporkDB->SporkExists(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2) &&
-			!pSporkDB->SporkExists(SPORK_16_ZEROCOIN_MAINTENANCE_MODE);
+			!pSporkDB->SporkExists(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) &&
+                        !pSporkDB->SporkExists(SPORK_18_CHANGE_COLLATERAL_ENFORCEMENT);
 
 		if (fMissingSporks || !fRequestedSporksIDB) {
 			LogPrintf("asking peer for sporks\n");
@@ -6501,12 +6546,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 int ActiveProtocol()
 {
 	// SPORK_14 is used for 70913 (v3.1.0+)
-	if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
-		return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+	//if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
+	//	return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
 	// SPORK_15 was used for 70912 (v3.0.5+), commented out now.
-	//if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
-	//        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+	if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
+	        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
 	return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
 }

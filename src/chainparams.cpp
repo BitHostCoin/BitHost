@@ -7,6 +7,8 @@
 
 #include "libzerocoin/Params.h"
 #include "chainparams.h"
+#include "net.h"
+#include "base58.h"
 #include "random.h"
 #include "util.h"
 #include "utilstrencodings.h"
@@ -54,26 +56,13 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
 static Checkpoints::MapCheckpoints mapCheckpoints =
     boost::assign::map_list_of
     (0, uint256("0x00000713764d64e3578f9e38227a95546fe55864e2af23566e1c5ca5933d23b3"))
-    (5, uint256("0x0000032afb18966c78f489dd386072df9e3ca372bc277433e7b8538ecf60e909"))
-    (37, uint256("0x000002faa14002eade0aa89769099a2ceee5d908e67e5751d802bbbf142d1055"))
-    (82, uint256("0x0000001e0c72c5b0aa2bbe036c75fb9160ab7f44d590cf297be05626ef01edca"))
-    (99, uint256("0x000000066ea7295747097c23fa1d8a9d60031a08d3148ede35650bbbf6f22344"))
-    (154, uint256("0x447ca5b3126771c5e17d48502626733c6bfa06e7ed4c17f8fa082b4a77e9c888"))
-    (173, uint256("0xa77f31fdbc9f56bc095413e085f1fd9b93b01c023c0ff1746d6482bb1c03dfc4"))
-    (204, uint256("0x98c2e143c0e7611e70af0f7bd87ae04fb13c0e8411610ab42403a59097a53674"))
-    (258, uint256("0x30289dfdf4b5e438d143d38bf5ee8ac14be3c9dac56603c1dc42977bb6bccb04"))
-    (372, uint256("0x6df9acfbd7b9ed17132861f302376237741690a9c6cc155d1cb8ebda3cb2d746"))
-    (561, uint256("0xc4d0326caefcf88802b9dd98c929cb77fe9c7956391d4366e25943a16116604f"))
-    (942, uint256("0xd64a300e7bddcd5a65fd18a06cd6aed235253c0f73e8bf367210ef6c9937c6a5"))
-    (1289, uint256("0x6e6f1b2a80db0e0f802660d3d8abdf6cc867063f8828a7c9c54539045c7bcf71"))
-    (1460, uint256("0x9b6b547bf591f6f876ff586c34e41e2390348473df178df6d0f279388d1006d5"))
-
+    (209962, uint256("0xe1f41967b8e05626e80d98db676437f953d8a2438a9318da9e2351a1f0b358b3"))
     ;
 static const Checkpoints::CCheckpointData data = {
     &mapCheckpoints,
-    1525106065, // * UNIX timestamp of last checkpoint block
-    2498834,    // * total number of transactions between genesis and last checkpoint
-                //   (the tx=... number in the SetBestChain debug.log lines)
+    1550746593, // * UNIX timestamp of last checkpoint block
+    564528,    // * total number of transactions between genesis and last checkpoint
+               //   (the tx=... number in the SetBestChain debug.log lines)
     2000        // * estimated number of transactions per day after checkpoint
 };
 
@@ -118,6 +107,11 @@ public:
     {
         networkID = CBaseChainParams::MAIN;
         strNetworkID = "main";
+        
+	//This is the dev fee address going to Felix Clin
+	//Dev Fee coded by TFinch.
+        vTreasuryRewardAddress = "BDVcJfxuQqqg4TEWMYLXeyxSSmCmAxuwXw";//"BQybgi9YRizJMZwpA85M1w4QR23vM5vZvb";        
+        
         /**
          * The message start string is designed to be unlikely to occur in normal data.
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
@@ -142,10 +136,11 @@ public:
         nMasternodeCountDrift = 20;
         nMaxMoneyOut = 51000000 * COIN;
 
-        //NUROM BlockHeight for Fork (Collateral + Reward changes)     
-        nHeightCollateralFork = 225000;
+        //NUROM BlockHeight for Fork (Collateral + Reward changes)
+        nHeightCollateralFork = 210000; //214335;//225000;
         nMasternodeCollateralOld = 3000;
-        nMasternodeCollateralNew = 15000;        
+        nMasternodeCollateralNew = 15000;//15000;
+        nHeightForkOffset = 20000; //1 => 12 hours
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 100;
@@ -227,8 +222,8 @@ public:
         fHeadersFirstSyncingActive = false;
 
         nPoolMaxTransactions = 3;
-        strSporkKey = "041278ab7313205885fea43da61cec01e8cb8620a0530d7475cacc45aae736adc16ba3e8b7a31469849cf0ccca9d8817a9f6d018fe13a97bee6f8a32d8e231f9fa";
-        strSporkKeyOld = "041278ab7313205885fea43da61cec01e8cb8620a0530d7475cacc45aae736adc16ba3e8b7a31469849cf0ccca9d8817a9f6d018fe13a97bee6f8a32d8e231f9fa";
+        strSporkKey = "048c8209dd214d732c238633d90f56edf4c67220ef2351776c2b653f13f3dcf699bfb637c0003253bebc95c8f3d748c7490f84fe9ca866c2a166bc430d5f6b6079";
+        //strSporkKeyOld = "041278ab7313205885fea43da61cec01e8cb8620a0530d7475cacc45aae736adc16ba3e8b7a31469849cf0ccca9d8817a9f6d018fe13a97bee6f8a32d8e231f9fa";
         strObfuscationPoolDummyAddress = "D87q2gC9j6nNrnzCsg4aY6bHMLsT9nUhEw";
         nStartMasternodePayments = 1539783000; //Wednesday, 17 October 2018 13:30:00 GMT
 
@@ -253,8 +248,19 @@ public:
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
         return data;
-    }
+    }  
 };
+
+std::string CChainParams::GetTreasuryRewardAddressAtHeight(int height) const { return vTreasuryRewardAddress; };
+
+CScript CChainParams::GetTreasuryRewardScriptAtHeight(int height) const {
+        CBitcoinAddress address(GetTreasuryRewardAddressAtHeight(height).c_str());
+        assert(address.IsValid());
+
+        CScript script = GetScriptForDestination(address.Get());
+        return script;    
+};  
+
 static CMainParams mainParams;
 
 /**
