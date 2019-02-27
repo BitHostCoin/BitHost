@@ -12,7 +12,7 @@ Block Time : 60 Sec Approx
 
 Block Size : 3 MB 
  
-Maximum Supply: 60,000,000
+Maximum Supply: 51,000,000
 
 Minimum Stake Age : 1 Hour
 
