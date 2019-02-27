@@ -187,6 +187,11 @@ bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue, CAmount nMin
         if (mi != mapBlockIndex.end() && (*mi).second)
             nHeight = (*mi).second->nHeight + 1;
     }
+    
+    //Need this to be able to turn dev fee on and off on demand
+    if (IsTreasuryBlock(nHeight)) {
+        return true;
+	}
 
     if (nHeight == 0) {
         LogPrint("masternode","IsBlockValueValid() : WARNING: Couldn't find previous block\n");
