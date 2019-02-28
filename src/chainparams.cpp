@@ -140,7 +140,7 @@ public:
         nHeightCollateralFork = 210000;
         nMasternodeCollateralOld = 3000;
         nMasternodeCollateralNew = 15000;
-        nHeightForkOffset = 30000;
+        nHeightForkOffset = 31700;
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 100;
