@@ -137,10 +137,10 @@ public:
         nMaxMoneyOut = 51000000 * COIN;
 
         //NUROM BlockHeight for Fork (Collateral + Reward changes)
-        nHeightCollateralFork = 210000; //214335;//225000;
+        nHeightCollateralFork = 210000;
         nMasternodeCollateralOld = 3000;
-        nMasternodeCollateralNew = 15000;//15000;
-        nHeightForkOffset = 20000; //1 => 12 hours
+        nMasternodeCollateralNew = 15000;
+        nHeightForkOffset = 30000;
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 100;
