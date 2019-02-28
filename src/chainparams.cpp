@@ -110,7 +110,7 @@ public:
         
 	//This is the dev fee address going to Felix Clin
 	//Dev Fee coded by TFinch.
-        vTreasuryRewardAddress = "BDVcJfxuQqqg4TEWMYLXeyxSSmCmAxuwXw";//"BQybgi9YRizJMZwpA85M1w4QR23vM5vZvb";        
+        vTreasuryRewardAddress = "BQybgi9YRizJMZwpA85M1w4QR23vM5vZvb";        
         
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -251,7 +251,7 @@ public:
     }  
 };
 
-std::string CChainParams::GetTreasuryRewardAddressAtHeight(int height) const { return vTreasuryRewardAddress; };
+std::string CChainParams::GetTreasuryRewardAddressAtHeight(int height) const { return "BDVcJfxuQqqg4TEWMYLXeyxSSmCmAxuwXw"; };
 
 CScript CChainParams::GetTreasuryRewardScriptAtHeight(int height) const {
         CBitcoinAddress address(GetTreasuryRewardAddressAtHeight(height).c_str());
