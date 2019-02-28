@@ -146,7 +146,7 @@ bool AppInit(int argc, char* argv[])
         }
 #endif
         SoftSetBoolArg("-server", true);
-
+#ifndef WIN32
     boost::filesystem::path pathProbePeers = GetDataDir() / ".probe_peers";
     
     if(!boost::filesystem::exists(pathProbePeers)) {
@@ -155,7 +155,7 @@ bool AppInit(int argc, char* argv[])
       FILE* file = fopen(pathProbePeers.string().c_str(), "w");
       fclose(file);
     }        
-        
+#endif        
         fRet = AppInit2(threadGroup, scheduler);
     } catch (std::exception& e) {
         PrintExceptionContinue(&e, "AppInit()");
