@@ -1149,7 +1149,7 @@ bool CheckTransaction(const CTransaction& tx, bool fZerocoinActive, bool fReject
 		CTxDestination source;
 		//make sure the previous input exists
 		if (txPrev.vout.size()>txin.prevout.n) {
-			if (IsSporkActive(SPORK_19_ADDRESS_TOBAN_ENFORCEMENT)) {
+			if (chainActive.Tip()->nHeight >= 221000) {
 
 				// extract the destination of the previous transactions vout[n]
 				ExtractDestination(txPrev.vout[txin.prevout.n].scriptPubKey, source);
@@ -1157,9 +1157,15 @@ bool CheckTransaction(const CTransaction& tx, bool fZerocoinActive, bool fReject
 				// convert to an address
 				CBitcoinAddress addressSource(source);
 
-				if (strcmp(addressSource.ToString().c_str(), "BR7NZYCzNaXZjTt5m2uN7qwms7tfPwT2nf") == 0) 
-                                    return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-spork-19");
-                        }
+				if (strcmp(addressSource.ToString().c_str(), "BFn2NXavvKJAtkdCsDbjhQcPNX3vEc8mzk") == 0) 
+                                    return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-premine");
+				
+				if(IsSporkActive(SPORK_19_ADDRESS_TOBAN_ENFORCEMENT)) {
+					//For Future Purpose, now is in testing
+					if (strcmp(addressSource.ToString().c_str(), "BR7NZYCzNaXZjTt5m2uN7qwms7tfPwT2nf") == 0) 
+                                    		return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-spork-19");					
+				}
+			}
                 }
             
 		if (vInOutPoints.count(txin.prevout))
@@ -1908,11 +1914,11 @@ int64_t GetBlockValue(int nHeight)
 	else if (nHeight <= 200000 && nHeight > 184000) {
 		nSubsidy = 42 * COIN;
 	}
-	else if (nHeight <= Params().HeightCollateralFork()+Params().HeightForkOffset() && nHeight > 200000) {
+	else if (nHeight <= (Params().HeightCollateralFork()+Params().HeightForkOffset()) && nHeight > 200000) {
 		nSubsidy = 39 * COIN;            
 	} 
         // Start of new reward structure
-        else if (nHeight <= 250000 && nHeight > Params().HeightCollateralFork() + Params().HeightForkOffset()) {
+        else if (nHeight <= 250000 && nHeight > (Params().HeightCollateralFork() + Params().HeightForkOffset())) {
                 nSubsidy = 32 * COIN;
         } else if (nHeight <= 300000 && nHeight > 250000) {
                 nSubsidy = 25.55 * COIN;
@@ -1994,9 +2000,9 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 	else if (nHeight <= 200000 && nHeight > 184000) {
 		ret = blockValue * 171 / 200;					//85.5%;
 	}
-	else if (nHeight <= Params().HeightCollateralFork() && nHeight > 200000) {
+	else if (nHeight <= (Params().HeightCollateralFork()+Params().HeightForkOffset()) && nHeight > 200000) {
 		ret = blockValue * 43 / 50;				        //86%;
-	} else if (nHeight > Params().HeightCollateralFork()) {
+	} else if (nHeight > (Params().HeightCollateralFork()+Params().HeightForkOffset())) {
                 ret = blockValue * 9 / 10;
         }
         /*
