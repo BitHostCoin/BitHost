@@ -130,9 +130,6 @@ public:
     int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
     int Zerocoin_Block_V2_Start() const { return nBlockZerocoinV2; }
     CAmount InvalidAmountFiltered() const { return nInvalidAmountFiltered; };  
-    std::string vTreasuryRewardAddress;
-    std::string GetTreasuryRewardAddressAtHeight(int height) const;
-    CScript GetTreasuryRewardScriptAtHeight(int height) const;
     
 protected:
     CChainParams() {}
@@ -156,8 +153,6 @@ protected:
     int nModifierUpdateBlock;
     CAmount nMaxMoneyOut;
     //NUROM Fork (Collateral + Reward changes)
-    int nHeightCollateralFork;
-    int nHeightForkOffset;
     CAmount nMasternodeCollateralOld;
     CAmount nMasternodeCollateralNew;  
     

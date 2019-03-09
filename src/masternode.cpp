@@ -18,7 +18,7 @@ map<uint256, int> mapSeenMasternodeScanningErrors;
 std::map<int64_t, uint256> mapCacheBlockHashes;
 
 CAmount GetMasternodeCollateral() { 
-    if(IsSporkActive(SPORK_18_CHANGE_COLLATERAL_ENFORCEMENT) && chainActive.Tip()->nHeight >= Params().HeightCollateralFork()) {
+    if(IsSporkActive(SPORK_18_CHANGE_COLLATERAL_ENFORCEMENT)) {
         return Params().MasternodeCollateralNew();
     }
     return Params().MasternodeCollateralOld();

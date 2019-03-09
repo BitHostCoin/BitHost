@@ -57,11 +57,12 @@ static Checkpoints::MapCheckpoints mapCheckpoints =
     boost::assign::map_list_of
     (0, uint256("0x00000713764d64e3578f9e38227a95546fe55864e2af23566e1c5ca5933d23b3"))
     (209962, uint256("0xe1f41967b8e05626e80d98db676437f953d8a2438a9318da9e2351a1f0b358b3"))
+    (234233, uint256("0x2ffe443ea53dbce86094c2617d603374a234a4846034aca037fe24f49a643a92"))
     ;
 static const Checkpoints::CCheckpointData data = {
     &mapCheckpoints,
-    1550746593, // * UNIX timestamp of last checkpoint block
-    564528,    // * total number of transactions between genesis and last checkpoint
+    1552085135, // * UNIX timestamp of last checkpoint block
+    615163,    // * total number of transactions between genesis and last checkpoint
                //   (the tx=... number in the SetBestChain debug.log lines)
     2000        // * estimated number of transactions per day after checkpoint
 };
@@ -106,11 +107,7 @@ public:
     CMainParams()
     {
         networkID = CBaseChainParams::MAIN;
-        strNetworkID = "main";
-        
-	//This is the dev fee address going to Felix Clin
-	//Dev Fee coded by TFinch.
-        vTreasuryRewardAddress = "BQybgi9YRizJMZwpA85M1w4QR23vM5vZvb";        
+        strNetworkID = "main";      
         
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -137,10 +134,8 @@ public:
         nMaxMoneyOut = 51000000 * COIN;
 
         //NUROM BlockHeight for Fork (Collateral + Reward changes)
-        nHeightCollateralFork = 210000;
         nMasternodeCollateralOld = 3000;
         nMasternodeCollateralNew = 15000;
-        nHeightForkOffset = 31700;
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 100;
@@ -187,20 +182,7 @@ public:
         assert(genesis.hashMerkleRoot == uint256("0xb633021072205df502b90881f7ff8422e7609d6e74a52ee98dcd4a9abd9bbf6c"));
 
         vSeeds.clear();
-        //vultr
-        /*vSeeds.push_back(CDNSSeedData("0", "199.247.1.214")); //ubuntu-11
-        vSeeds.push_back(CDNSSeedData("1", "45.32.157.2")); //ubuntu-27
-        vSeeds.push_back(CDNSSeedData("2", "95.179.160.89")); //ubuntu-18
-        vSeeds.push_back(CDNSSeedData("3", "108.61.178.171")); //ubuntu-19        
-        */
-        /*vSeeds.push_back(CDNSSeedData("0", "159.89.232.159"));
-        vSeeds.push_back(CDNSSeedData("1", "178.128.150.32"));    
-        vSeeds.push_back(CDNSSeedData("2", "178.128.180.243"));         
-        vSeeds.push_back(CDNSSeedData("3", "142.93.233.99"));
-        vSeeds.push_back(CDNSSeedData("4", "104.248.148.153"));
-        vSeeds.push_back(CDNSSeedData("5", "104.248.166.76"));
-        vSeeds.push_back(CDNSSeedData("6", "46.101.249.104"));
-        vSeeds.push_back(CDNSSeedData("7", "142.93.144.163"));*/
+        //vSeeds.push_back(CDNSSeedData("0", "199.247.1.214"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 25);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 13);
@@ -222,8 +204,9 @@ public:
         fHeadersFirstSyncingActive = false;
 
         nPoolMaxTransactions = 3;
-        strSporkKey = "02ef5bc4e1483bba9bcfd3bd635cfca9d78dc55a6891c2124c6d32df17bcccbc93";
-        strSporkKeyOld = "041278ab7313205885fea43da61cec01e8cb8620a0530d7475cacc45aae736adc16ba3e8b7a31469849cf0ccca9d8817a9f6d018fe13a97bee6f8a32d8e231f9fa";
+        strSporkKey = "02c7196c9388bd202b36feade4b6a83173cf2ad8ce24115ed0ee56ace96f8bca9c";
+        strSporkKeyOld = "02ef5bc4e1483bba9bcfd3bd635cfca9d78dc55a6891c2124c6d32df17bcccbc93";
+        //"041278ab7313205885fea43da61cec01e8cb8620a0530d7475cacc45aae736adc16ba3e8b7a31469849cf0ccca9d8817a9f6d018fe13a97bee6f8a32d8e231f9fa";
         strObfuscationPoolDummyAddress = "D87q2gC9j6nNrnzCsg4aY6bHMLsT9nUhEw";
         nStartMasternodePayments = 1539783000; //Wednesday, 17 October 2018 13:30:00 GMT
 
@@ -250,16 +233,6 @@ public:
         return data;
     }  
 };
-
-std::string CChainParams::GetTreasuryRewardAddressAtHeight(int height) const { return "BDVcJfxuQqqg4TEWMYLXeyxSSmCmAxuwXw"; };
-
-CScript CChainParams::GetTreasuryRewardScriptAtHeight(int height) const {
-        CBitcoinAddress address(GetTreasuryRewardAddressAtHeight(height).c_str());
-        assert(address.IsValid());
-
-        CScript script = GetScriptForDestination(address.Get());
-        return script;    
-};  
 
 static CMainParams mainParams;
 

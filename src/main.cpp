@@ -1864,13 +1864,6 @@ int64_t GetBlockValue(int nHeight)
 		if (nHeight < 200 && nHeight > 0)
 			return 250000 * COIN;
 	}    
-    
-
-	if (IsTreasuryBlock(nHeight)) {
-            LogPrintf("GetBlockValue(): this is a treasury block\n");
-            nSubsidy = GetTreasuryAward(nHeight);
-
-        } else {    
 
 	if (nHeight <= Params().LAST_POW_BLOCK() && nHeight >= 1) {
 		nSubsidy = 18000 * COIN;
@@ -1914,11 +1907,11 @@ int64_t GetBlockValue(int nHeight)
 	else if (nHeight <= 200000 && nHeight > 184000) {
 		nSubsidy = 42 * COIN;
 	}
-	else if (nHeight <= (Params().HeightCollateralFork()+Params().HeightForkOffset()) && nHeight > 200000) {
+	else if (nHeight <= 241700 && nHeight > 200000) {
 		nSubsidy = 39 * COIN;            
 	} 
         // Start of new reward structure
-        else if (nHeight <= 250000 && nHeight > (Params().HeightCollateralFork() + Params().HeightForkOffset())) {
+        else if (nHeight <= 250000 && nHeight > 241700) {
                 nSubsidy = 32 * COIN;
         } else if (nHeight <= 300000 && nHeight > 250000) {
                 nSubsidy = 25.55 * COIN;
@@ -1948,7 +1941,6 @@ int64_t GetBlockValue(int nHeight)
         if (nMoneySupply >= Params().MaxMoneyOut())
            nSubsidy = 0; //Amount each block pays after max supply is reached
         
-        }
 	return nSubsidy;
 }
 
@@ -2000,34 +1992,12 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 	else if (nHeight <= 200000 && nHeight > 184000) {
 		ret = blockValue * 171 / 200;					//85.5%;
 	}
-	else if (nHeight <= (Params().HeightCollateralFork()+Params().HeightForkOffset()) && nHeight > 200000) {
+	else if (nHeight <= 241700 && nHeight > 200000) {
 		ret = blockValue * 43 / 50;				        //86%;
-	} else if (nHeight > (Params().HeightCollateralFork()+Params().HeightForkOffset())) {
+	} else if (nHeight > 241700) { // Start of new reward structure
                 ret = blockValue * 9 / 10;
         }
-        /*
-	else if (nHeight <= 242000 && nHeight > 225000) {
-		ret = blockValue * 173 / 200;					
-	}
-	else if (nHeight <= 264000 && nHeight > 242000) {
-		ret = blockValue * 87 / 100;					
-	}
-	else if (nHeight <= 284000 && nHeight > 264000) {
-		ret = blockValue * 7 / 8;						
-	}
-	else if (nHeight <= 300000 && nHeight > 284000) {
-		ret = blockValue * 22 / 25;						
-	}
-	else if (nHeight <= 500000 && nHeight > 300000) {
-		ret = blockValue * 177 / 200;					
-	}
-	else if (nHeight <= 600000 && nHeight > 500000) {
-		ret = blockValue * 89 / 100;					
-	}
-	else if (nHeight <= 700000 && nHeight > 600000) {
-		ret = blockValue * 179 / 200;					
-	}*/
-	else { // Start of new reward structure
+	else { 
 		ret = blockValue * 9 / 10;						
 	}
 	
@@ -2035,50 +2005,6 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 	    ret = 1 * COIN;
 
 	return ret;
-}
-
-//Treasury blocks start from 220,000 and then each 10,000th block
-//TFinch
-int nStartTreasuryBlock = 230000;
-int nTreasuryBlockStep = 1440;
-
-
-bool IsTreasuryBlock(int nHeight)
-{
-    //This is put in for when dev fee is turned off.
-    if (IsSporkActive(SPORK_17_TREASURY_PAYMENT_ENFORCEMENT) && nStartTreasuryBlock >= nHeight && ((nHeight - nStartTreasuryBlock) % nTreasuryBlockStep) == 0)
-        return true;
-    return false;
-}
-
-int64_t GetTreasuryAward(int nHeight)
-{
-    if (IsTreasuryBlock(nHeight)) {
-
-    if (nHeight <= 250000 && nHeight > 200000) {
-       return 921.6 * COIN; //921.6 aday at 2% of 32 coins per block        
-    } else if (nHeight <= 300000 && nHeight > 250000) {
-        return 734.4 * COIN; //734.4 aday at 2% of 25.5 coins per block
-    } else if (nHeight <= 400000 && nHeight > 300000) {
-        return 576.0 * COIN; //589.824 aday at 2% of 20 coins per block
-    } else if (nHeight <= 2200000 && nHeight > 400000) {
-        return 480.0 * COIN; //471.744 aday at 2% of 16.67 coins per block
-    } else if (nHeight <= 3200000 && nHeight > 2200000) {
-        return 118.37 * COIN; //118.08 aday at 2% of 4.11 coins per block
-    } else if (nHeight <= 4200000 && nHeight > 3200000) {
-        return 57.06 * COIN; //59.04 aday at 2% of 2 coins per block
-    } else if (nHeight <= 5200000 && nHeight > 4200000) {
-        return 28.8 * COIN; //29.367 aday at 2% of 1 coins per block
-    } else if (nHeight <= 6200000 && nHeight > 5200000) {
-        return 15.84 * COIN; //14.688 aday at 2% of .55 coins per block
-    } else if (nHeight <= (chainActive.Tip()->nMoneySupply - 7) && nHeight > 6200000) {
-        return 6.34 * COIN; //7.48 aday at 2% of .22 coins per block
-    } else {
-        return 0;
-    }
-
-	}
-else return 0;
 }
 
 bool IsInitialBlockDownload()
