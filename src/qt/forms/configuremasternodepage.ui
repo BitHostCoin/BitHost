@@ -108,13 +108,13 @@
    </item>
    <item>  
     <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
+     <!--<item>
       <widget class="QPushButton" name="AutoFillPrivKey">
        <property name="text">
         <string>&amp;AutoFill PrivKey</string>
        </property>
       </widget>
-     </item>
+     </item>-->
      <item>
       <widget class="QPushButton" name="AutoFillOutputs">
        <property name="text">

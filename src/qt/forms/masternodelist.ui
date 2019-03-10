@@ -278,17 +278,17 @@
                  </widget>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                 <layout class="QHBoxLayout" name="horizontalLayout_51">
                   <property name="bottomMargin">
                    <number>0</number>
                   </property>
-                  <item>
+                  <!--<item>
                    <widget class="QPushButton" name="getMNPrivKeyButton">
                     <property name="text">
                      <string>G&amp;et MN Priv Key</string>
                     </property>
                    </widget>
-                  </item>
+                  </item>-->
                   <item>
                    <widget class="QPushButton" name="getOutputsButton">
                     <property name="text">
@@ -302,7 +302,27 @@
                      <string>C&amp;onfigure Masternode</string>
                     </property>
                    </widget>
+                  </item>	
+                  <item>
+                   <spacer name="horizontalSpacer_5">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>70</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>									
+                 </layout>
+                </item>
+                <item>
+								 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>                 								
                   <item>
                    <widget class="QPushButton" name="startButton">
                     <property name="text">

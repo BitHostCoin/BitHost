@@ -80,8 +80,7 @@ public:
     
     CAmount MasternodeCollateralOld() const { return nMasternodeCollateralOld; }
     CAmount MasternodeCollateralNew() const { return nMasternodeCollateralNew; }
-    int HeightCollateralFork() const { return nHeightCollateralFork; }
-    int HeightForkOffset() const { return nHeightForkOffset; }
+    
     /** The masternode count that we will allow the see-saw reward payments to be off by */
     int MasternodeCountDrift() const { return nMasternodeCountDrift; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
